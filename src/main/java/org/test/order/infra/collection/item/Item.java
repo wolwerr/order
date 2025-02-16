@@ -27,13 +27,4 @@ public class Item {
     @LastModifiedDate
     @Field("updatedAt")
     private LocalDateTime updatedAt;
-
-    public Item(UUID uuid, String name, Double value, Integer quantity, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.uuid = uuid;
-        this.name = name;
-        this.value = value;
-        this.quantity = quantity;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
 }
