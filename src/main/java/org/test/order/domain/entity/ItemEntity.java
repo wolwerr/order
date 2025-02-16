@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.test.order.domain.exception.item.ItemEmpty;
 import org.test.order.domain.exception.item.ItemValueZero;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -14,6 +15,9 @@ public class ItemEntity {
     private String name;
     private Double value;
     private Integer quantity;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
 
     public Double getTotalValue() {
         return value * quantity;
@@ -33,11 +37,13 @@ public class ItemEntity {
         return quantity;
     }
 
-    public ItemEntity(UUID uuid, String name, Double value, Integer quantity) {
+    public ItemEntity(UUID uuid, String name, Double value, Integer quantity, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.uuid = uuid;
         this.name = name;
         this.value = value;
         this.quantity = quantity;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
 }

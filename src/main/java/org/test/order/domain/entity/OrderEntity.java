@@ -6,9 +6,9 @@ import org.test.order.domain.enuns.StatusOrder;
 import org.test.order.domain.exception.item.ItemEmpty;
 import org.test.order.domain.exception.order.OrderValueZero;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-
 
 @Getter
 @Setter
@@ -19,6 +19,8 @@ public class OrderEntity {
     private Double totalValue;
     private UUID customerId;
     private List<ItemEntity> item;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public int verifyItems() {
         if (item.isEmpty()) {
@@ -27,7 +29,7 @@ public class OrderEntity {
         return item.size();
     }
 
-    public  Double verifyTotalValue() {
+    public Double verifyTotalValue() {
         if (totalValue < 0) {
             throw new OrderValueZero("Total value must be greater than 0");
         }
@@ -37,8 +39,4 @@ public class OrderEntity {
     public Double totalValue() {
         return item.stream().mapToDouble(ItemEntity::getTotalValue).sum();
     }
-
 }
-
-
-

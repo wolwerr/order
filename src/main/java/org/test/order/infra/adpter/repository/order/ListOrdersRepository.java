@@ -23,7 +23,9 @@ public class ListOrdersRepository  implements ListOrdersInterface {
                     item.getUuid(),
                     item.getName(),
                     item.getValue(),
-                    item.getQuantity()
+                    item.getQuantity(),
+                    item.getCreatedAt(),
+                    item.getUpdatedAt()
             );
             itemsList.add(itemEntity);
         }
@@ -41,6 +43,8 @@ public class ListOrdersRepository  implements ListOrdersInterface {
             orderEntity.setStatusOrder(orderCollection.getStatusOrder());
             orderEntity.setTotalValue(orderCollection.getTotalValue());
             orderEntity.setCustomerId(orderCollection.getCustomerId());
+            orderEntity.setCreatedAt(orderCollection.getCreatedAt());
+            orderEntity.setUpdatedAt(orderCollection.getUpdatedAt());
 
             List<ItemEntity> itemsList = getItems(orderCollection.getItems());
             orderEntity.setItem(itemsList);
