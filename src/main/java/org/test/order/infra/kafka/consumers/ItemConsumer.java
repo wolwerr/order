@@ -43,7 +43,11 @@ public class ItemConsumer {
                     logger.info("Mensagem recebida - Tópico: {}, Chave: {}, Valor: {}", record.topic(), record.key(), record.value());
                     try {
                         JsonNode messageJson = objectMapper.readTree(record.value());
-                        String uuidItem = messageJson.get("uuid").asText();
+                        UUID uuidItem = UUID.fromString(messageJson.get("uuid").asText());
+                        if (itemMongoRepository.findByUuid(uuidItem).isPresent()) {
+                            logger.error("Item with UUID {} already exists. Skipping save.", uuidItem);
+                            continue;
+                        }
                         String name = messageJson.get("name").asText();
                         double totalValue = messageJson.get("value").asDouble();
                         int quantity = messageJson.get("quantity").asInt();
@@ -51,7 +55,7 @@ public class ItemConsumer {
                         LocalDateTime updated_at = LocalDateTime.parse(messageJson.get("updatedAt").asText());
 
                         Item item = new Item();
-                        item.setUuid(UUID.fromString(uuidItem));
+                        item.setUuid(uuidItem);
                         item.setName(name);
                         item.setValue(totalValue);
                         item.setQuantity(quantity);
