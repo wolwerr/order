@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import org.test.order.domain.enuns.StatusOrder;
 import org.test.order.infra.collection.item.Item;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -17,8 +18,9 @@ import java.util.UUID;
 @Document(collection = "order")
 @Getter
 @Setter
-public class Order {
+public class Order implements Serializable {
     @Id
+    @Field("uuid")
     private UUID uuid;
     @Field("order_number")
     private String orderNumber;

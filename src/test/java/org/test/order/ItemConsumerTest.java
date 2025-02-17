@@ -1,4 +1,3 @@
-// src/test/java/org/test/order/ItemConsumerTest.java
 package org.test.order;
 
 import org.junit.jupiter.api.Test;
@@ -11,14 +10,13 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 import java.util.Map;
 
-
 @SpringBootTest
 @DirtiesContext
 @ActiveProfiles("test")
 public class ItemConsumerTest {
 
     @Autowired
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private KafkaTemplate<String, Map<String, Object>> kafkaTemplate;
 
     @Test
     public void testSendMultipleMessages() {

@@ -40,7 +40,7 @@ public class ItemConsumer {
             while (!Thread.currentThread().isInterrupted()) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
                 for (ConsumerRecord<String, String> record : records) {
-                    logger.info("Mensagem recebida - Tópico: {}, Chave: {}, Valor: {}", record.topic(), record.key(), record.value());
+                    logger.info("Message receipted- Topic: {}, Key: {}, Value: {}", record.topic(), record.key(), record.value());
                     try {
                         JsonNode messageJson = objectMapper.readTree(record.value());
                         UUID uuidItem = UUID.fromString(messageJson.get("uuid").asText());
@@ -65,13 +65,13 @@ public class ItemConsumer {
                         itemMongoRepository.save(item);
 
                     } catch (Exception e) {
-                        logger.error("Erro ao processar a mensagem: {}", e.getMessage());
+                        logger.error("Erro to process the message: {}", e.getMessage());
                     }
                 }
             }
         } finally {
             this.consumer.close();
-            logger.info("Consumidor Kafka fechado.");
+            logger.info("Kafka consumer closed.");
         }
     }
 }
