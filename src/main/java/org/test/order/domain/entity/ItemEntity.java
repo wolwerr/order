@@ -19,9 +19,9 @@ public class ItemEntity {
     private LocalDateTime updatedAt;
 
 
-    public Double getTotalValue() {
-        return value * quantity;
-    }
+//    public static Double getTotalValue() {
+//        return value * quantity;
+//    }
 
     public double verifyValue() {
         if (value < 0) {

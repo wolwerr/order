@@ -3,8 +3,6 @@ package org.test.order.domain.entity;
 import lombok.Getter;
 import lombok.Setter;
 import org.test.order.domain.enuns.StatusOrder;
-import org.test.order.domain.exception.item.ItemEmpty;
-import org.test.order.domain.exception.order.OrderValueZero;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,27 +14,24 @@ public class OrderEntity {
     private UUID uuid;
     private String orderNumber;
     private StatusOrder statusOrder;
-    private Double totalValue;
+    private double totalValue;
     private UUID customerId;
-    private List<ItemEntity> item;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<ItemEntity> item;
 
-    public int verifyItems() {
-        if (item.isEmpty()) {
-            throw new ItemEmpty("Items must be greater than 0");
-        }
-        return item.size();
+    public OrderEntity(UUID uuid, String orderNumber, StatusOrder statusOrder, double totalValue, UUID customerId, LocalDateTime createdAt, LocalDateTime updatedAt, List<ItemEntity> item) {
+        this.uuid = UUID.randomUUID();
+        this.orderNumber = orderNumber;
+        this.statusOrder = statusOrder;
+        this.totalValue = totalValue;
+        this.customerId = customerId;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.item = item;
     }
 
-    public Double verifyTotalValue() {
-        if (totalValue < 0) {
-            throw new OrderValueZero("Total value must be greater than 0");
-        }
-        return totalValue;
+    public OrderEntity() {
     }
 
-    public Double totalValue() {
-        return item.stream().mapToDouble(ItemEntity::getTotalValue).sum();
-    }
 }

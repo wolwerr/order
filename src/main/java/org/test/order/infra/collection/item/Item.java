@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+import org.test.order.domain.exception.item.ItemEmpty;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -30,4 +31,25 @@ public class Item {
     @LastModifiedDate
     @Field("updatedAt")
     private LocalDateTime updatedAt;
+
+    public Item(UUID uuid, String name, Double value, Integer quantity, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.uuid = uuid;
+        this.name = name;
+        this.value = value;
+        this.quantity = quantity;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public Item() {
+
+    }
+
+    public int verifyQuantity() {
+        if (quantity < 0) {
+            throw new ItemEmpty("Quantity must be greater than 0");
+        }
+        return quantity;
+    }
+
 }

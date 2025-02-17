@@ -30,12 +30,23 @@ public class Order implements Serializable {
     private Double totalValue;
     @Field("customer_id")
     private UUID customerId;
-    @Field("items")
-    private List<Item> items;
     @CreatedDate
     @Field("createdAt")
     private LocalDateTime createdAt;
     @LastModifiedDate
     @Field("updatedAt")
     private LocalDateTime updatedAt;
+    @Field("items")
+    private List<Item> item;
+
+    public Order(UUID uuid, String orderNumber, StatusOrder statusOrder, Double totalValue, UUID customerId, LocalDateTime createdAt, LocalDateTime updatedAt, List<Item> item) {
+        this.uuid = uuid;
+        this.orderNumber = orderNumber;
+        this.statusOrder = statusOrder;
+        this.totalValue = totalValue;
+        this.customerId = customerId;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.item = item;
+    }
 }

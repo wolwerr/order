@@ -23,17 +23,14 @@ public class KafkaProducerConfig {
     protected void send(String key, String value) {
         System.out.println("Message: " + value);
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
-        producer.send(record, new Callback() {
-            @Override
-            public void onCompletion(RecordMetadata metadata, Exception exception) {
-                if (exception == null) {
-                    System.out.println("Message sended with success to topic: " + metadata.topic()
-                            + "\nPartition: " + metadata.partition()
-                            + "\nOffset: " + metadata.offset()
-                            + "\nTimestamp: " + metadata.timestamp());
-                } else {
-                    System.err.println("Error to send message: " + exception.getMessage());
-                }
+        producer.send(record, (metadata, exception) -> {
+            if (exception == null) {
+                System.out.println("Message sended with success to topic: " + metadata.topic()
+                        + "\nPartition: " + metadata.partition()
+                        + "\nOffset: " + metadata.offset()
+                        + "\nTimestamp: " + metadata.timestamp());
+            } else {
+                System.err.println("Error to send message: " + exception.getMessage());
             }
         });
     }

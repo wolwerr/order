@@ -1,6 +1,5 @@
 package org.test.order.infra.adpter.repository.order;
 
-import lombok.RequiredArgsConstructor;
 import org.test.order.domain.entity.ItemEntity;
 import org.test.order.domain.entity.OrderEntity;
 import org.test.order.domain.gateway.order.ListOrdersInterface;
@@ -11,11 +10,12 @@ import org.test.order.infra.repository.OrderMongoRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-@RequiredArgsConstructor
-public class ListOrdersRepository  implements ListOrdersInterface {
-    public  final OrderMongoRepository orderMongoRepository;
-
+public record ListOrdersRepository(OrderMongoRepository orderMongoRepository) implements ListOrdersInterface {
     private static List<ItemEntity> getItems(List<Item> itemsOrder) {
+        return getItemEntities(itemsOrder);
+    }
+
+    public static List<ItemEntity> getItemEntities(List<Item> itemsOrder) {
         List<ItemEntity> itemsList = new ArrayList<>();
 
         for (Item item : itemsOrder) {
@@ -46,7 +46,7 @@ public class ListOrdersRepository  implements ListOrdersInterface {
             orderEntity.setCreatedAt(orderCollection.getCreatedAt());
             orderEntity.setUpdatedAt(orderCollection.getUpdatedAt());
 
-            List<ItemEntity> itemsList = getItems(orderCollection.getItems());
+            List<ItemEntity> itemsList = getItems(orderCollection.getItem());
             orderEntity.setItem(itemsList);
 
             orderEntities.add(orderEntity);

@@ -1,12 +1,15 @@
 package org.test.order.infra.kafka.producers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.test.order.infra.collection.item.Item;
+import org.test.order.domain.entity.ItemEntity;
+import org.test.order.domain.output.order.CreateOrderOutput;
 import org.test.order.infra.dependecy.kafka.resolvers.producers.KafkaProducerConfig;
 import org.test.order.infra.dependecy.kafka.resolvers.producers.KafkaProducerResolver;
+import org.test.order.domain.entity.OrderEntity;
 
 import java.util.UUID;
 
@@ -18,21 +21,39 @@ public class OrderProducer extends KafkaProducerConfig {
         super(servers, new KafkaProducerResolver().getOrder());
     }
 
-    public void sendOrder(Item item) {
+    public void sendOrder(CreateOrderOutput createOrderOutput) {
         try {
+            OrderEntity orderEntity = createOrderOutput.getOrderEntity();
             ObjectNode jsonNode = objectMapper.createObjectNode();
-            jsonNode.put("uuid", item.getUuid().toString());
-            jsonNode.put("name", item.getName());
-            jsonNode.put("value", item.getValue());
-            jsonNode.put("quantity", item.getQuantity());
-            jsonNode.put("createdAt", item.getCreatedAt().toString());
-            jsonNode.put("updatedAt", item.getUpdatedAt().toString());
-            String json = jsonNode.toString();
+            jsonNode.put("uuid", orderEntity.getUuid().toString());
+            jsonNode.put("orderNumber", orderEntity.getOrderNumber());
+            jsonNode.put("statusOrder", orderEntity.getStatusOrder().ordinal());
+            jsonNode.put("totalValue", orderEntity.getTotalValue());
+            jsonNode.put("customerId", orderEntity.getCustomerId().toString());
+            jsonNode.put("createdAt", orderEntity.getCreatedAt().toString());
+            jsonNode.put("updatedAt", orderEntity.getUpdatedAt().toString());
+
+            ArrayNode itemsNode = jsonNode.putArray("item");
+            for (ItemEntity itemEntity : orderEntity.getItem()) {
+                ObjectNode itemNode = objectMapper.createObjectNode();
+                itemNode.put("uuid", itemEntity.getUuid().toString());
+                itemNode.put("name", itemEntity.getName());
+                itemNode.put("value", itemEntity.getValue());
+                itemNode.put("quantity", itemEntity.getQuantity());
+                itemNode.put("createdAt", itemEntity.getCreatedAt().toString());
+                itemNode.put("updatedAt", itemEntity.getUpdatedAt().toString());
+                itemsNode.add(itemNode);
+            }
+
+            ObjectNode responseNode = objectMapper.createObjectNode();
+            responseNode.set("orderEntity", jsonNode);
+
+            String json = responseNode.toString();
             send(UUID.randomUUID().toString(), json);
-            logger.info("Message sent - UUID: {}, Name: {}, Value: {}, Quantity: {}",
-                    item.getUuid(), item.getName(), item.getValue(), item.getQuantity());
+            logger.info("Message sent - UUID: {}, OrderNumber: {}, TotalValue: {}, Items: {}",
+                    orderEntity.getUuid(), orderEntity.getOrderNumber(), orderEntity.getTotalValue(), orderEntity.getItem().size());
         } catch (Exception e) {
             logger.error("Error sending message: ", e);
         }
     }
-}
+    }
