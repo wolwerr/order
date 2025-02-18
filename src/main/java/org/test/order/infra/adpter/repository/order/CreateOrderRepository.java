@@ -7,6 +7,7 @@ import org.test.order.domain.entity.OrderEntity;
 import org.test.order.domain.exception.item.ItemEmptyException;
 import org.test.order.domain.exception.item.ItemValueZeroException;
 import org.test.order.domain.exception.order.OrderNotFoundException;
+import org.test.order.domain.exception.order.OrderValueZeroException;
 import org.test.order.domain.gateway.order.CreateOrderInterface;
 import org.test.order.infra.collection.item.Item;
 import org.test.order.infra.collection.order.Order;
@@ -24,7 +25,11 @@ public class CreateOrderRepository implements CreateOrderInterface {
     private final OrderMongoRepository orderMongoRepository;
     private final ItemMongoRepository itemMongoRepository;
 
-    public void saveOrder(OrderEntity orderEntity) {
+    public void saveOrder(OrderEntity orderEntity) throws OrderValueZeroException {
+        if (orderEntity.getTotalValue() == 0.0) {
+            throw new OrderValueZeroException("Order total value cannot be zero.");
+        }
+
         if (orderEntity.getItem() == null) {
             orderEntity.setItem(new ArrayList<>());
         }
@@ -42,17 +47,7 @@ public class CreateOrderRepository implements CreateOrderInterface {
                     if (itemOptional.isEmpty()) {
                         throw new RuntimeException(new OrderNotFoundException("Item not found: " + itemEntity.getUuid()));
                     }
-                    Item item = itemOptional.get();
-                    int newQuantity = 0;
-                    try {
-                        newQuantity = item.verifyQuantity() - itemEntity.getQuantity();
-                    } catch (ItemEmptyException e) {
-                        throw new RuntimeException(e);
-                    }
-                    if (newQuantity < 0) {
-                        throw new RuntimeException(new OrderNotFoundException("Item out of stock: " + itemEntity.getUuid()));
-                    }
-                    item.setQuantity(newQuantity);
+                    Item item = getItem(itemEntity, itemOptional);
                     itemMongoRepository.save(item);
 
                     return new Item(
@@ -88,6 +83,20 @@ public class CreateOrderRepository implements CreateOrderInterface {
                 throw new RuntimeException(e);
             }
         }).collect(Collectors.toList()));
+    }
 
+    private static Item getItem(ItemEntity itemEntity, Optional<Item> itemOptional) {
+        Item item = itemOptional.get();
+        int newQuantity = 0;
+        try {
+            newQuantity = item.verifyQuantity() - itemEntity.getQuantity();
+        } catch (ItemEmptyException e) {
+            throw new RuntimeException(e);
+        }
+        if (newQuantity < 0) {
+            throw new RuntimeException(new OrderNotFoundException("Item out of stock: " + itemEntity.getUuid()));
+        }
+        item.setQuantity(newQuantity);
+        return item;
     }
 }

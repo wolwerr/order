@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.test.order.domain.enuns.StatusOrder;
+import org.test.order.domain.generic.output.OutputInterface;
+import org.test.order.domain.generic.output.OutputStatus;
 import org.test.order.domain.input.order.CreateOrderInput;
 import org.test.order.infra.collection.item.Item;
 import org.test.order.infra.collection.order.Order;
@@ -55,11 +57,50 @@ public class CreateOrderControllerTest {
         Order savedOrder = orderCaptor.getValue();
 
         assertNotNull(savedOrder);
-        //assertEquals(orderId, savedOrder.getUuid());
         assertEquals("ORD123", savedOrder.getOrderNumber());
         assertEquals(StatusOrder.APPROVED, savedOrder.getStatusOrder());
         assertEquals(0.0, savedOrder.getTotalValue());
-        //assertEquals(userId, savedOrder.getUuid());
         assertEquals(0, savedOrder.getItem().size());
+    }
+
+    @Test
+    public void test_createOrder_returnsGenericResponse() {
+        // Arrange
+        OrderMongoRepository orderMongoRepository = mock(OrderMongoRepository.class);
+        ItemMongoRepository itemMongoRepository = mock(ItemMongoRepository.class);
+        CreateOrderController controller = new CreateOrderController(orderMongoRepository, itemMongoRepository);
+        ReflectionTestUtils.setField(controller, "servers", "localhost:9092");
+
+        List<Item> items = new ArrayList<>();
+        UUID orderId = UUID.fromString("123e4567-e89b-12d3-a456-426614174006");
+        UUID userId = UUID.fromString("223e4567-e89b-12d3-a456-426614174007");
+
+        CreateOrderInput input = new CreateOrderInput(
+                orderId, "ORD123", StatusOrder.APPROVED, 0.0, userId, LocalDateTime.now(), LocalDateTime.now(), items
+        );
+
+        OutputInterface outputInterface = mock(OutputInterface.class);
+        OutputStatus outputStatus = mock(OutputStatus.class);
+        when(outputInterface.getOutputStatus()).thenReturn(outputStatus);
+        when(outputStatus.getCode()).thenReturn(201);
+        when(outputInterface.getBody()).thenReturn("Order Created");
+
+        Order savedOrder = new Order(
+                orderId,
+                "ORD123",
+                StatusOrder.APPROVED,
+                0.0,
+                userId,
+                LocalDateTime.now(),
+                LocalDateTime.now(),
+                items
+        );
+        when(orderMongoRepository.save(any(Order.class))).thenReturn(savedOrder);
+
+        // Act
+        ResponseEntity<Object> response = controller.createOrder(input);
+
+        // Assert
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 }
