@@ -6,8 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.test.order.infra.collection.item.Item;
 import org.test.order.infra.repository.ItemMongoRepository;
 import static org.mockito.Mockito.when;
+
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -20,7 +23,10 @@ class ListItemControllerTest {
     public void test_get_all_items_returns_success_response() {
         // Arrange
         ItemMongoRepository mockRepo = mock(ItemMongoRepository.class);
-        List<Item> mockItems = Arrays.asList(new Item(), new Item());
+        List<Item> mockItems = Arrays.asList(
+                new Item(UUID.randomUUID(), "Item1", 10.00, 100, LocalDateTime.now(), LocalDateTime.now()),
+                new Item(UUID.randomUUID(), "Item2", 5.00, 50, LocalDateTime.now(), LocalDateTime.now())
+        );
         when(mockRepo.findAll()).thenReturn(mockItems);
 
         ListItemController controller = new ListItemController(mockRepo);

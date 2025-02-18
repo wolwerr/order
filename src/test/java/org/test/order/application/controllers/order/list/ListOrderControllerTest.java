@@ -3,7 +3,8 @@ package org.test.order.application.controllers.order.list;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.test.order.domain.entity.OrderEntity;
+import org.test.order.application.controllers.order.list.response.ListAllOrdersResponse;
+import org.test.order.application.controllers.order.list.response.OrderResponseList;
 import org.test.order.domain.enuns.StatusOrder;
 import org.test.order.infra.collection.order.Order;
 import org.test.order.infra.repository.OrderMongoRepository;
@@ -16,9 +17,8 @@ import static org.mockito.Mockito.*;
 
 class ListOrderControllerTest {
 
-    // Successfully retrieve and return list of all orders with 200 status code
     @Test
-    public void test_get_all_orders_returns_200_with_order_list() {
+    void test_get_all_orders_returns_200_with_order_list() {
         // Arrange
         OrderMongoRepository mockRepo = mock(OrderMongoRepository.class);
         List<Order> orders = createTestOrders();
@@ -32,16 +32,16 @@ class ListOrderControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertInstanceOf(List.class, response.getBody());
-        List<OrderEntity> responseBody = (List<OrderEntity>) response.getBody();
-        assertEquals(2, responseBody.size());
+        assertInstanceOf(ListAllOrdersResponse.class, response.getBody());
+        ListAllOrdersResponse responseBody = (ListAllOrdersResponse) response.getBody();
+        assertEquals(2, responseBody.getOrders().size());
 
-        OrderEntity firstOrder = responseBody.getFirst();
+        OrderResponseList firstOrder = responseBody.getOrders().get(0);
         assertEquals("ORD-001", firstOrder.getOrderNumber());
         assertEquals("PENDING", firstOrder.getStatusOrder().name());
         assertEquals(100.0, firstOrder.getTotalValue());
 
-        OrderEntity secondOrder = responseBody.get(1);
+        OrderResponseList secondOrder = responseBody.getOrders().get(1);
         assertEquals("ORD-002", secondOrder.getOrderNumber());
         assertEquals("APPROVED", secondOrder.getStatusOrder().name());
         assertEquals(200.0, secondOrder.getTotalValue());
@@ -71,9 +71,9 @@ class ListOrderControllerTest {
         return Arrays.asList(order1, order2);
     }
 
-    // Handle null response from ListOrdersRepository
+
     @Test
-    public void test_get_all_orders_returns_500_when_repository_returns_null() {
+     void test_get_all_orders_returns_500_when_repository_returns_null() {
         // Arrange
         OrderMongoRepository mockRepo = mock(OrderMongoRepository.class);
         when(mockRepo.findAll()).thenReturn(null);

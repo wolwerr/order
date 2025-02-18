@@ -45,7 +45,4 @@ public class Item {
 
     }
 
-    public Integer getStock() {
-        return this.quantity;
-    }
 }

@@ -4,11 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.test.order.domain.enuns.StatusOrder;
-import org.test.order.domain.exception.item.ItemEmptyException;
+import org.test.order.infra.collection.item.Item;
 import org.test.order.infra.repository.ItemMongoRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Getter
@@ -46,13 +47,9 @@ public class OrderEntity {
     }
 
     public boolean hasSufficientStock(ItemMongoRepository itemMongoRepository) {
-        for (ItemEntity item : item) {
-            try {
-                item.verifyQuantity(); // Verify the quantity of the item
-                if (item.getQuantity() > itemMongoRepository.findByUuid(item.getUuid()).orElseThrow().getStock()) {
-                    return false;
-                }
-            } catch (ItemEmptyException e) {
+        for (ItemEntity item : this.item) {
+            Optional<Item> stockItem = itemMongoRepository.findById(String.valueOf(item.getUuid()));
+            if (stockItem.isEmpty() || stockItem.get().getQuantity() < item.getQuantity()) {
                 return false;
             }
         }

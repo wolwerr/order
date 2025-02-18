@@ -1,5 +1,6 @@
 package org.test.order.application.controllers.order.createOrder;
 
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,20 @@ public class CreateOrderController {
     private String servers;
 
     @PostMapping
-    @Operation(summary = "Create a new order", tags = {"Order"})
+    @Operation(
+            summary = "Create a new order",
+            description = "Creates a new order.",
+            tags = {"Order"},
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Order details to be created",
+                    required = true
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Order successfully created"),
+                    @ApiResponse(responseCode = "400", description = "Invalid request data"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     @Transactional
     public ResponseEntity<Object> createOrder(@RequestBody CreateOrderInput createOrderInput) {
         List<Item> items = new ArrayList<>(createOrderInput.items());

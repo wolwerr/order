@@ -23,6 +23,5 @@ public class ItemResponse {
         this.value = value;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-
     }
 }
