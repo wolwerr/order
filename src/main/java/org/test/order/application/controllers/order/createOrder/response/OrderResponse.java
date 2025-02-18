@@ -20,7 +20,7 @@ public class OrderResponse {
     private LocalDateTime updatedAt;
     private List<ItemResponse> items;
 
-    public OrderResponse(UUID uuid, String orderNumber, StatusOrder statusOrder, Double totalValue, UUID customerId, LocalDateTime createdAt, LocalDateTime updatedAt, List<ItemResponse> items) {
+    public OrderResponse(UUID uuid, String orderNumber, StatusOrder statusOrder, UUID customerId, LocalDateTime createdAt, LocalDateTime updatedAt, List<ItemResponse> items) {
         this.uuid = uuid;
         this.orderNumber = orderNumber;
         this.statusOrder = statusOrder;
