@@ -6,7 +6,6 @@ import org.test.order.domain.entity.OrderEntity;
 import org.test.order.domain.enuns.StatusOrder;
 import org.test.order.domain.exception.item.ItemEmptyException;
 import org.test.order.domain.exception.item.ItemValueZeroException;
-import org.test.order.domain.exception.order.OrderNotFoundException;
 import org.test.order.domain.exception.order.OrderValueZeroException;
 import org.test.order.infra.collection.item.Item;
 import org.test.order.infra.collection.order.Order;
@@ -14,7 +13,6 @@ import org.test.order.infra.repository.ItemMongoRepository;
 import org.test.order.infra.repository.OrderMongoRepository;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,7 +24,7 @@ class CreateOrderRepositoryTest {
 
     // Successfully save new order with valid items and update item quantities
     @Test
-    public void test_save_order_with_valid_items_success() throws ItemValueZeroException, ItemEmptyException, OrderNotFoundException, OrderValueZeroException {
+    public void test_save_order_with_valid_items_success() throws ItemValueZeroException, ItemEmptyException,  OrderValueZeroException {
         // Arrange
         OrderMongoRepository orderMongoRepository = mock(OrderMongoRepository.class);
         ItemMongoRepository itemMongoRepository = mock(ItemMongoRepository.class);
@@ -99,5 +97,6 @@ class CreateOrderRepositoryTest {
         assertThrows(RuntimeException.class, () -> createOrderRepository.saveOrder(orderEntity));
         verify(orderMongoRepository, never()).save(any(Order.class));
     }
+
 
 }
