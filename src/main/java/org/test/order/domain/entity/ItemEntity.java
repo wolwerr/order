@@ -19,10 +19,6 @@ public class ItemEntity {
     private LocalDateTime updatedAt;
 
 
-//    public static Double getTotalValue() {
-//        return value * quantity;
-//    }
-
     public double verifyValue() throws ItemValueZeroException {
         if (value < 0) {
             throw new ItemValueZeroException("Value must be greater than 0");

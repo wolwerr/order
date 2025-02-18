@@ -29,9 +29,15 @@ public class OrderEntity {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.item = item;
+        this.totalValue = calculateTotalValue();
     }
 
     public OrderEntity() {
     }
 
+    public double calculateTotalValue() {
+        return item.stream()
+                .mapToDouble(i -> i.getValue() * i.getQuantity())
+                .sum();
+    }
 }
