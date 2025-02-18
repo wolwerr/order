@@ -49,4 +49,7 @@ public class Order implements Serializable {
         this.updatedAt = updatedAt;
         this.item = item;
     }
+
+    public Order() {
+    }
 }

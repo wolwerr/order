@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.test.order.domain.entity.ItemEntity;
 import org.test.order.domain.entity.OrderEntity;
+import org.test.order.domain.exception.item.ItemEmptyException;
+import org.test.order.domain.exception.item.ItemValueZeroException;
 import org.test.order.domain.exception.order.OrderNotFoundException;
 import org.test.order.domain.gateway.order.CreateOrderInterface;
 import org.test.order.infra.collection.item.Item;
@@ -41,7 +43,12 @@ public class CreateOrderRepository implements CreateOrderInterface {
                         throw new RuntimeException(new OrderNotFoundException("Item not found: " + itemEntity.getUuid()));
                     }
                     Item item = itemOptional.get();
-                    int newQuantity = item.verifyQuantity() - itemEntity.getQuantity();
+                    int newQuantity = 0;
+                    try {
+                        newQuantity = item.verifyQuantity() - itemEntity.getQuantity();
+                    } catch (ItemEmptyException e) {
+                        throw new RuntimeException(e);
+                    }
                     if (newQuantity < 0) {
                         throw new RuntimeException(new OrderNotFoundException("Item out of stock: " + itemEntity.getUuid()));
                     }
@@ -67,14 +74,20 @@ public class CreateOrderRepository implements CreateOrderInterface {
         orderEntity.setCustomerId(orderCollection.getCustomerId());
         orderEntity.setCreatedAt(orderCollection.getCreatedAt());
         orderEntity.setUpdatedAt(orderCollection.getUpdatedAt());
-        orderEntity.setItem(orderCollection.getItem().stream().map(item -> new ItemEntity(
-                item.getUuid(),
-                item.getName(),
-                item.getValue(),
-                item.getQuantity(),
-                item.getCreatedAt(),
-                item.getUpdatedAt()
-        )).collect(Collectors.toList()));
+        orderEntity.setItem(orderCollection.getItem().stream().map(item -> {
+            try {
+                return new ItemEntity(
+                        item.getUuid(),
+                        item.getName(),
+                        item.getValue(),
+                        item.getQuantity(),
+                        item.getCreatedAt(),
+                        item.getUpdatedAt()
+                );
+            } catch (ItemValueZeroException | ItemEmptyException e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toList()));
 
     }
 }

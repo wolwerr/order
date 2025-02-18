@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.test.order.domain.entity.ItemEntity;
 import org.test.order.domain.entity.OrderEntity;
+import org.test.order.domain.exception.item.ItemEmptyException;
+import org.test.order.domain.exception.item.ItemValueZeroException;
 import org.test.order.domain.gateway.order.CreateOrderInterface;
 import org.test.order.domain.generic.output.OutputError;
 import org.test.order.domain.generic.output.OutputInterface;
@@ -30,7 +32,13 @@ public class CreateOrderUseCase {
     public void execute(CreateOrderInput createOrderInput) {
         try {
             List<ItemEntity> itemEntities = createOrderInput.items().stream()
-                    .map(item -> new ItemEntity(item.getUuid(), item.getName(), item.getValue(), item.getQuantity(), item.getCreatedAt(), item.getUpdatedAt()))
+                    .map(item -> {
+                        try {
+                            return new ItemEntity(item.getUuid(), item.getName(), item.getValue(), item.getQuantity(), item.getCreatedAt(), item.getUpdatedAt());
+                        } catch (ItemValueZeroException | ItemEmptyException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
                     .collect(Collectors.toList());
 
             OrderEntity orderEntity = new OrderEntity(

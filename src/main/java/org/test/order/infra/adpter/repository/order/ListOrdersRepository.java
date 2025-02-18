@@ -2,6 +2,8 @@ package org.test.order.infra.adpter.repository.order;
 
 import org.test.order.domain.entity.ItemEntity;
 import org.test.order.domain.entity.OrderEntity;
+import org.test.order.domain.exception.item.ItemEmptyException;
+import org.test.order.domain.exception.item.ItemValueZeroException;
 import org.test.order.domain.gateway.order.ListOrdersInterface;
 import org.test.order.infra.collection.item.Item;
 import org.test.order.infra.collection.order.Order;
@@ -11,11 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record ListOrdersRepository(OrderMongoRepository orderMongoRepository) implements ListOrdersInterface {
-    private static List<ItemEntity> getItems(List<Item> itemsOrder) {
+    private static List<ItemEntity> getItems(List<Item> itemsOrder) throws ItemValueZeroException, ItemEmptyException {
         return getItemEntities(itemsOrder);
     }
 
-    public static List<ItemEntity> getItemEntities(List<Item> itemsOrder) {
+    public static List<ItemEntity> getItemEntities(List<Item> itemsOrder) throws ItemValueZeroException, ItemEmptyException {
         List<ItemEntity> itemsList = new ArrayList<>();
 
         for (Item item : itemsOrder) {
@@ -32,7 +34,7 @@ public record ListOrdersRepository(OrderMongoRepository orderMongoRepository) im
         return itemsList;
     }
 
-    public List<OrderEntity> listOrders() {
+    public List<OrderEntity> listOrders() throws ItemValueZeroException, ItemEmptyException {
         List<Order> orderModels = orderMongoRepository.findAll();
         List<OrderEntity> orderEntities = new ArrayList<>();
 

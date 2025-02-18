@@ -8,6 +8,8 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.test.order.domain.exception.item.ItemEmptyException;
+import org.test.order.domain.exception.item.ItemValueZeroException;
 import org.test.order.infra.collection.item.Item;
 import org.test.order.infra.dependecy.kafka.resolvers.consumers.KafkaConsumerResolver;
 import org.test.order.infra.repository.ItemMongoRepository;
@@ -61,6 +63,14 @@ public class ItemConsumer {
                         item.setQuantity(quantity);
                         item.setCreatedAt(created_at);
                         item.setUpdatedAt(updated_at);
+
+                        // Validate the item
+                        if (totalValue < 0) {
+                            throw new ItemValueZeroException("Value of item must be greater than 0");
+                        }
+                        if (quantity < 0) {
+                            throw new ItemEmptyException("Quantity of item must be greater than 0");
+                        }
 
                         itemMongoRepository.save(item);
 

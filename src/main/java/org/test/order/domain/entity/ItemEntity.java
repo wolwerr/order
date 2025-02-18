@@ -2,8 +2,8 @@ package org.test.order.domain.entity;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.test.order.domain.exception.item.ItemEmpty;
-import org.test.order.domain.exception.item.ItemValueZero;
+import org.test.order.domain.exception.item.ItemEmptyException;
+import org.test.order.domain.exception.item.ItemValueZeroException;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -23,21 +23,21 @@ public class ItemEntity {
 //        return value * quantity;
 //    }
 
-    public double verifyValue() {
+    public double verifyValue() throws ItemValueZeroException {
         if (value < 0) {
-            throw new ItemValueZero("Value must be greater than 0");
+            throw new ItemValueZeroException("Value must be greater than 0");
         }
         return value;
     }
 
-    public int verifyQuantity() {
+    public int verifyQuantity() throws ItemEmptyException {
         if (quantity < 0) {
-            throw new ItemEmpty("Quantity must be greater than 0");
+            throw new ItemEmptyException("Quantity must be greater than 0");
         }
         return quantity;
     }
 
-    public ItemEntity(UUID uuid, String name, Double value, Integer quantity, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public ItemEntity(UUID uuid, String name, Double value, Integer quantity, LocalDateTime createdAt, LocalDateTime updatedAt) throws ItemValueZeroException, ItemEmptyException {
         this.uuid = uuid;
         this.name = name;
         this.value = value;
