@@ -1,7 +1,6 @@
 package org.test.order.domain.generic.output;
 
 import lombok.Getter;
-import org.test.order.domain.entity.OrderEntity;
 
 @Getter
 public class OutputError implements OutputInterface{

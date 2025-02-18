@@ -7,8 +7,6 @@ import org.test.order.domain.entity.OrderEntity;
 import org.test.order.domain.generic.output.OutputInterface;
 import org.test.order.domain.generic.output.OutputStatus;
 
-import java.util.UUID;
-
 @Getter
 @Setter
 @RequiredArgsConstructor
