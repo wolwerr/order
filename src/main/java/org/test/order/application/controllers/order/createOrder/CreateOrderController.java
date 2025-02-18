@@ -60,7 +60,7 @@ public class CreateOrderController {
         );
         CreateOrderUseCase useCase = new CreateOrderUseCase(
                 new CreateOrderRepository(orderMongoRepository, itemMongoRepository),
-                new OrderProducer(servers)
+                new OrderProducer(servers), itemMongoRepository
         );
         useCase.execute(input);
         return useCase.getCreateOrderOutput();

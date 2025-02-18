@@ -7,7 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-import org.test.order.domain.exception.item.ItemEmptyException;
+
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -45,11 +45,7 @@ public class Item {
 
     }
 
-    public int verifyQuantity() throws ItemEmptyException {
-        if (quantity < 0) {
-            throw new ItemEmptyException("Quantity must be greater than 0");
-        }
-        return quantity;
+    public Integer getStock() {
+        return this.quantity;
     }
-
 }

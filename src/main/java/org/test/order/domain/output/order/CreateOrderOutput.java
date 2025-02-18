@@ -14,19 +14,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CreateOrderOutput implements OutputInterface {
     private final OrderEntity orderEntity;
+    private Object body;
     private final OutputStatus outputStatus;
 
     @Override
-    public Object getBody() {
-        return this.orderEntity;
+    public OutputStatus getOutputStatus() {
+        return outputStatus;
     }
 
     @Override
-    public OutputStatus getOutputStatus() {
-        return this.outputStatus;
-    }
-
-    public UUID getUuid() {
-        return this.orderEntity.getUuid();
+    public Object getBody() {
+        return body;
     }
 }

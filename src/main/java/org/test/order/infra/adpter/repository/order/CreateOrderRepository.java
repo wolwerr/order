@@ -26,13 +26,11 @@ public class CreateOrderRepository implements CreateOrderInterface {
     private final ItemMongoRepository itemMongoRepository;
 
     public void saveOrder(OrderEntity orderEntity) throws OrderValueZeroException {
-        if (orderEntity.getTotalValue() == 0.0) {
-            throw new OrderValueZeroException("Order total value cannot be zero.");
-        }
-
         if (orderEntity.getItem() == null) {
             orderEntity.setItem(new ArrayList<>());
         }
+
+        double[] totalValue = {0.0};
 
         Order orderCollection = new Order(
                 orderEntity.getUuid(),
@@ -47,13 +45,16 @@ public class CreateOrderRepository implements CreateOrderInterface {
                     if (itemOptional.isEmpty()) {
                         throw new RuntimeException(new OrderNotFoundException("Item not found: " + itemEntity.getUuid()));
                     }
-                    Item item = getItem(itemEntity, itemOptional);
+                    Item item = itemOptional.get();
+                    item.setQuantity(item.getQuantity() - itemEntity.getQuantity());
                     itemMongoRepository.save(item);
+
+                    totalValue[0] += item.getValue() * itemEntity.getQuantity();
 
                     return new Item(
                             itemEntity.getUuid(),
                             itemEntity.getName(),
-                            itemEntity.getValue(),
+                            item.getValue(),
                             itemEntity.getQuantity(),
                             itemEntity.getCreatedAt(),
                             itemEntity.getUpdatedAt()
@@ -61,6 +62,11 @@ public class CreateOrderRepository implements CreateOrderInterface {
                 }).collect(Collectors.toList())
         );
 
+        if (totalValue[0] == 0.0) {
+            throw new OrderValueZeroException("Order total value cannot be zero.");
+        }
+
+        orderCollection.setTotalValue(totalValue[0]);
         orderCollection = orderMongoRepository.save(orderCollection);
 
         orderEntity.setUuid(orderCollection.getUuid());
@@ -85,18 +91,4 @@ public class CreateOrderRepository implements CreateOrderInterface {
         }).collect(Collectors.toList()));
     }
 
-    private static Item getItem(ItemEntity itemEntity, Optional<Item> itemOptional) {
-        Item item = itemOptional.get();
-        int newQuantity = 0;
-        try {
-            newQuantity = item.verifyQuantity() - itemEntity.getQuantity();
-        } catch (ItemEmptyException e) {
-            throw new RuntimeException(e);
-        }
-        if (newQuantity < 0) {
-            throw new RuntimeException(new OrderNotFoundException("Item out of stock: " + itemEntity.getUuid()));
-        }
-        item.setQuantity(newQuantity);
-        return item;
-    }
 }

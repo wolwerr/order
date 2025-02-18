@@ -16,6 +16,7 @@ import org.test.order.domain.generic.output.OutputStatus;
 import org.test.order.domain.input.order.CreateOrderInput;
 import org.test.order.domain.output.order.CreateOrderOutput;
 import org.test.order.infra.kafka.producers.OrderProducer;
+import org.test.order.infra.repository.ItemMongoRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ public class CreateOrderUseCase {
     private static final Logger logger = LoggerFactory.getLogger(CreateOrderUseCase.class);
     private final CreateOrderInterface createOrderRepository;
     private final OrderProducer orderProducer;
+    private final ItemMongoRepository itemMongoRepository;
     private OutputInterface createOrderOutput;
 
     @Transactional
@@ -34,7 +36,9 @@ public class CreateOrderUseCase {
             List<ItemEntity> itemEntities = createOrderInput.items().stream()
                     .map(item -> {
                         try {
-                            return new ItemEntity(item.getUuid(), item.getName(), item.getValue(), item.getQuantity(), item.getCreatedAt(), item.getUpdatedAt());
+                            ItemEntity itemEntity = new ItemEntity(item.getUuid(), item.getName(), item.getValue(), item.getQuantity(), item.getCreatedAt(), item.getUpdatedAt());
+                            itemEntity.verifyQuantity(); // Verify the quantity of the item
+                            return itemEntity;
                         } catch (ItemValueZeroException | ItemEmptyException e) {
                             throw new RuntimeException(e);
                         }
@@ -51,6 +55,14 @@ public class CreateOrderUseCase {
                     createOrderInput.updatedAt(),
                     itemEntities
             );
+
+            if (!orderEntity.hasSufficientStock(itemMongoRepository)) {
+                this.createOrderOutput = new OutputError(
+                        "One or more items are out of stock.",
+                        new OutputStatus(400, "Bad Request", "One or more items are out of stock.")
+                );
+                return;
+            }
 
             this.createOrderRepository.saveOrder(orderEntity);
             this.createOrderOutput = new CreateOrderOutput(

@@ -27,7 +27,7 @@ public class OrderProducer extends KafkaProducerConfig {
             ObjectNode jsonNode = objectMapper.createObjectNode();
             jsonNode.put("uuid", orderEntity.getUuid().toString());
             jsonNode.put("orderNumber", orderEntity.getOrderNumber());
-            jsonNode.put("statusOrder", orderEntity.getStatusOrder().ordinal());
+            jsonNode.put("statusOrder", orderEntity.getStatusOrder().toString());
             jsonNode.put("totalValue", orderEntity.getTotalValue());
             jsonNode.put("customerId", orderEntity.getCustomerId().toString());
             jsonNode.put("createdAt", orderEntity.getCreatedAt().toString());
