@@ -11,13 +11,11 @@ import org.springframework.stereotype.Component;
 import org.test.order.domain.exception.item.ItemEmptyException;
 import org.test.order.domain.exception.item.ItemValueZeroException;
 import org.test.order.infra.collection.item.Item;
-import org.test.order.infra.dependecy.kafka.resolvers.consumers.KafkaConsumerResolver;
 import org.test.order.infra.repository.ItemMongoRepository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Properties;
 import java.util.UUID;
 
 @Component
@@ -27,61 +25,72 @@ public class ItemConsumer {
     private final ObjectMapper objectMapper;
     private final ItemMongoRepository itemMongoRepository;
 
-    public ItemConsumer(
-            Properties kafkaConsumerProperties,
-            ItemMongoRepository itemMongoRepository
-    ) {
-        this.consumer = new KafkaConsumer<>(kafkaConsumerProperties);
-        this.consumer.subscribe(Collections.singletonList(new KafkaConsumerResolver().getItemConsumer()));
+    public ItemConsumer(KafkaConsumer<String, String> consumer, ItemMongoRepository itemMongoRepository) {
+        this.consumer = consumer;
+        this.consumer.subscribe(Collections.singletonList("item"));
         this.itemMongoRepository = itemMongoRepository;
         this.objectMapper = new ObjectMapper();
     }
 
     public void runConsumer() {
         try {
-            while (!Thread.currentThread().isInterrupted()) {
+            boolean running = true;
+            while (running && !Thread.currentThread().isInterrupted()) {
+                // Realiza a chamada de consumo
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+
+                // Se não houver mensagens, continue o loop
+                if (records.isEmpty()) {
+                    continue;
+                }
+
+                // Processa cada mensagem recebida
                 for (ConsumerRecord<String, String> record : records) {
-                    logger.info("Message receipted- Topic: {}, Key: {}, Value: {}", record.topic(), record.key(), record.value());
+                    logger.info("Mensagem recebida - Tópico: {}, Chave: {}, Valor: {}", record.topic(), record.key(), record.value());
                     try {
+                        // Converte a mensagem para JSON
                         JsonNode messageJson = objectMapper.readTree(record.value());
                         UUID uuidItem = UUID.fromString(messageJson.get("uuid").asText());
+
+                        // Verifica se o item já existe no banco
                         if (itemMongoRepository.findByUuid(uuidItem).isPresent()) {
-                            logger.error("Item with UUID {} already exists. Skipping save.", uuidItem);
-                            continue;
+                            logger.error("Item com UUID {} já existe. Pulando salvamento.", uuidItem);
+                            continue;  // Ignora a mensagem se o item já existe
                         }
+
+                        // Recupera e valida os dados do item
                         String name = messageJson.get("name").asText();
                         double totalValue = messageJson.get("value").asDouble();
                         int quantity = messageJson.get("quantity").asInt();
-                        LocalDateTime created_at = LocalDateTime.parse(messageJson.get("createdAt").asText());
-                        LocalDateTime updated_at = LocalDateTime.parse(messageJson.get("updatedAt").asText());
+                        LocalDateTime createdAt = LocalDateTime.parse(messageJson.get("createdAt").asText());
+                        LocalDateTime updatedAt = LocalDateTime.parse(messageJson.get("updatedAt").asText());
 
-                        Item item = new Item();
-                        item.setUuid(uuidItem);
-                        item.setName(name);
-                        item.setValue(totalValue);
-                        item.setQuantity(quantity);
-                        item.setCreatedAt(created_at);
-                        item.setUpdatedAt(updated_at);
-
-                        // Validate the item
+                        // Validações dos dados
                         if (totalValue < 0) {
-                            throw new ItemValueZeroException("Value of item must be greater than 0");
+                            throw new ItemValueZeroException("O valor deve ser maior que 0");
                         }
                         if (quantity < 0) {
-                            throw new ItemEmptyException("Quantity of item must be greater than 0");
+                            throw new ItemEmptyException("A quantidade deve ser maior que 0");
                         }
 
+
+                        Item item = new Item(uuidItem, name, totalValue, quantity, createdAt, updatedAt);
                         itemMongoRepository.save(item);
+                        logger.info("Item com UUID {} salvo com sucesso.", uuidItem);
 
                     } catch (Exception e) {
-                        logger.error("Erro to process the message: {}", e.getMessage());
+
+                        logger.error("Erro ao processar mensagem: {}", e.getMessage());
                     }
                 }
             }
         } finally {
+
             this.consumer.close();
-            logger.info("Kafka consumer closed.");
+            logger.info("Kafka closed.");
         }
     }
+
+
+
 }

@@ -134,6 +134,13 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/infra/config/**</exclude>
+                                <exclude>**/dependency/kafka/resolver/consumers/**</exclude>
+                                <exclude>**/dependency/kafka/resolver/producers/**</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
