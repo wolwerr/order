@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -44,8 +43,8 @@ public class ItemConsumerTest {
         );
 
         when(mockConsumer.poll(any(Duration.class)))
-                .thenReturn(records) // Primeira chamada retorna mensagem válida
-                .thenReturn(new ConsumerRecords<>(Collections.emptyMap())); // Segunda chamada retorna vazio (evita loop)
+                .thenReturn(records)
+                .thenReturn(new ConsumerRecords<>(Collections.emptyMap()));
 
         when(mockRepo.findByUuid(any(UUID.class))).thenReturn(Optional.empty());
 
@@ -54,7 +53,6 @@ public class ItemConsumerTest {
         // Act
         new Thread(itemConsumer::runConsumer).start();
 
-        // Esperar um pouco para permitir a execução do consumidor
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -68,7 +66,6 @@ public class ItemConsumerTest {
                         item.getQuantity() == 1
         ));
 
-        // Parar o consumidor
         mockConsumer.wakeup();
     }
 
@@ -88,15 +85,14 @@ public class ItemConsumerTest {
         );
 
         when(mockConsumer.poll(any(Duration.class)))
-                .thenReturn(records) // Primeira chamada retorna mensagem inválida
-                .thenReturn(new ConsumerRecords<>(Collections.emptyMap())); // Segunda chamada não retorna nada, simulando um loop normal
+                .thenReturn(records)
+                .thenReturn(new ConsumerRecords<>(Collections.emptyMap()));
 
         ItemConsumer itemConsumer = new ItemConsumer(mockConsumer, mockRepo);
 
         // Act
         new Thread(itemConsumer::runConsumer).start();
 
-        // Esperar um pouco para permitir a execução do consumidor
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -106,7 +102,6 @@ public class ItemConsumerTest {
         // Assert
         verify(mockRepo, never()).save(any(Item.class));
 
-        // Parar o consumidor
         mockConsumer.wakeup();
     }
 
@@ -166,7 +161,6 @@ public class ItemConsumerTest {
 
         UUID uuid = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
-        // Mensagem JSON com valor inválido (menor que 0)
         String invalidJson = "{\"uuid\":\"" + uuid + "\"," +
                 "\"name\":\"test item\"," +
                 "\"value\":-10.0," +  // Valor inválido
@@ -182,17 +176,16 @@ public class ItemConsumerTest {
                 Collections.singletonMap(new TopicPartition("item", 0), Collections.singletonList(record))
         );
 
-        // Configuração do mock para simular a resposta do Kafka
         when(mockConsumer.poll(any(Duration.class)))
                 .thenReturn(records)
-                .thenReturn(new ConsumerRecords<>(Collections.emptyMap()));  // Retorna vazio depois
+                .thenReturn(new ConsumerRecords<>(Collections.emptyMap()));
 
         ItemConsumer itemConsumer = new ItemConsumer(mockConsumer, mockRepo);
 
         // Act
         new Thread(itemConsumer::runConsumer).start();
 
-        // Aguarda o processo consumir a mensagem
+
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -200,9 +193,9 @@ public class ItemConsumerTest {
         }
 
         // Assert
-        verify(mockRepo, never()).save(any(Item.class));  // Não deve salvar o item com valor inválido
+        verify(mockRepo, never()).save(any(Item.class));
 
-        mockConsumer.wakeup();  // Interrompe o consumer
+        mockConsumer.wakeup();
     }
 
 
@@ -214,7 +207,6 @@ public class ItemConsumerTest {
 
         UUID uuid = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
-        // Mensagem JSON com quantidade inválida (menor que 0)
         String invalidJson = "{\"uuid\":\"" + uuid + "\"," +
                 "\"name\":\"test item\"," +
                 "\"value\":10.0," +  // Valor válido
@@ -230,17 +222,15 @@ public class ItemConsumerTest {
                 Collections.singletonMap(new TopicPartition("item", 0), Collections.singletonList(record))
         );
 
-        // Configuração do mock para simular a resposta do Kafka
         when(mockConsumer.poll(any(Duration.class)))
                 .thenReturn(records)
-                .thenReturn(new ConsumerRecords<>(Collections.emptyMap()));  // Retorna vazio depois
+                .thenReturn(new ConsumerRecords<>(Collections.emptyMap()));
 
         ItemConsumer itemConsumer = new ItemConsumer(mockConsumer, mockRepo);
 
         // Act
         new Thread(itemConsumer::runConsumer).start();
 
-        // Aguarda o processo consumir a mensagem
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -248,9 +238,9 @@ public class ItemConsumerTest {
         }
 
         // Assert
-        verify(mockRepo, never()).save(any(Item.class));  // Não deve salvar o item com quantidade inválida
+        verify(mockRepo, never()).save(any(Item.class));
 
-        mockConsumer.wakeup();  // Interrompe o consumer
+        mockConsumer.wakeup();
     }
 
 }
