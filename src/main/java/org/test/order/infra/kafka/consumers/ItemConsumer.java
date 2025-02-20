@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.test.order.domain.exception.item.ItemEmptyException;
 import org.test.order.domain.exception.item.ItemValueZeroException;
 import org.test.order.infra.collection.item.Item;
+import org.test.order.infra.dependecy.kafka.resolvers.consumers.KafkaConsumerResolver;
 import org.test.order.infra.repository.ItemMongoRepository;
 
 import java.time.Duration;
@@ -27,7 +28,7 @@ public class ItemConsumer {
 
     public ItemConsumer(KafkaConsumer<String, String> consumer, ItemMongoRepository itemMongoRepository) {
         this.consumer = consumer;
-        this.consumer.subscribe(Collections.singletonList("item"));
+        this.consumer.subscribe(Collections.singletonList(KafkaConsumerResolver.getItemConsumer()));
         this.itemMongoRepository = itemMongoRepository;
         this.objectMapper = new ObjectMapper();
     }
@@ -36,43 +37,36 @@ public class ItemConsumer {
         try {
             boolean running = true;
             while (running && !Thread.currentThread().isInterrupted()) {
-                // Realiza a chamada de consumo
+
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
 
-                // Se não houver mensagens, continue o loop
                 if (records.isEmpty()) {
                     continue;
                 }
 
-                // Processa cada mensagem recebida
                 for (ConsumerRecord<String, String> record : records) {
                     logger.info("Mensagem recebida - Tópico: {}, Chave: {}, Valor: {}", record.topic(), record.key(), record.value());
                     try {
-                        // Converte a mensagem para JSON
                         JsonNode messageJson = objectMapper.readTree(record.value());
                         UUID uuidItem = UUID.fromString(messageJson.get("uuid").asText());
 
-                        // Verifica se o item já existe no banco
                         if (itemMongoRepository.findByUuid(uuidItem).isPresent()) {
                             logger.error("Item com UUID {} já existe. Pulando salvamento.", uuidItem);
-                            continue;  // Ignora a mensagem se o item já existe
+                            continue;
                         }
 
-                        // Recupera e valida os dados do item
                         String name = messageJson.get("name").asText();
                         double totalValue = messageJson.get("value").asDouble();
                         int quantity = messageJson.get("quantity").asInt();
                         LocalDateTime createdAt = LocalDateTime.parse(messageJson.get("createdAt").asText());
                         LocalDateTime updatedAt = LocalDateTime.parse(messageJson.get("updatedAt").asText());
 
-                        // Validações dos dados
                         if (totalValue < 0) {
                             throw new ItemValueZeroException("O valor deve ser maior que 0");
                         }
                         if (quantity < 0) {
                             throw new ItemEmptyException("A quantidade deve ser maior que 0");
                         }
-
 
                         Item item = new Item(uuidItem, name, totalValue, quantity, createdAt, updatedAt);
                         itemMongoRepository.save(item);

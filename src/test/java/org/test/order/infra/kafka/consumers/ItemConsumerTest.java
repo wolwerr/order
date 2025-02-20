@@ -5,8 +5,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.Test;
-import org.test.order.domain.exception.item.ItemEmptyException;
-import org.test.order.domain.exception.item.ItemValueZeroException;
 import org.test.order.infra.collection.item.Item;
 import org.test.order.infra.repository.ItemMongoRepository;
 
