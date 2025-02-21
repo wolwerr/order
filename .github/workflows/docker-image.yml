@@ -72,7 +72,7 @@ jobs:
           distribution: 'temurin'
 
       - name: SonarCloud analysis
-        run: mvn clean verify org.sonarsource.scanner.maven:sonar \
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=${{ secrets.SONAR_PROJECTKEY }} \
           -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
           -Dsonar.host.url=https://sonarcloud.io \
