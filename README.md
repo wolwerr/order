@@ -42,7 +42,7 @@ Isso irá iniciar os seguintes serviços:
 
 A estrutura do projeto segue uma arquitetura baseada em microsserviços, utilizando Kafka para comunicação assíncrona entre os serviços.
 
-![Arquitetura do Projeto](../order/Arquitetura.png)
+![Arquitetura do Projeto](Arquitetura.png)
 
 ---
 
