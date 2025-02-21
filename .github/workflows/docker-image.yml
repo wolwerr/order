@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
@@ -72,11 +72,23 @@ jobs:
           distribution: 'temurin'
 
       - name: SonarCloud analysis
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=${{ secrets.SONAR_PROJECTKEY }} \
-          -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECTKEY }} -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+
+      - name: Install xmllint
+        run: sudo apt-get install -y libxml2-utils
+
+      - name: Check JaCoCo Coverage
+        run: |
+          JACOCO_XML_PATH=target/site/jacoco/jacoco.xml
+          COVERAGE=$(xmllint --xpath 'string(//report/counter[@type="INSTRUCTION"]/@covered)' $JACOCO_XML_PATH)
+          MISSED=$(xmllint --xpath 'string(//report/counter[@type="INSTRUCTION"]/@missed)' $JACOCO_XML_PATH)
+          TOTAL=$(echo "$COVERAGE + $MISSED" | bc)
+          PERCENTAGE=$(echo "scale=2; $COVERAGE / $TOTAL * 100" | bc)
+          echo "Code coverage percentage: $PERCENTAGE%"
+          if (( $(echo "$PERCENTAGE < 50" | bc -l) )); then
+            echo "Code coverage is below 80%: $PERCENTAGE%"
+            exit 1
+          fi
 
   deploy-to-dockerhub:
     needs: sonarcloud-analysis
