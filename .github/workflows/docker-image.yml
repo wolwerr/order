@@ -123,14 +123,6 @@ jobs:
           echo $NEW_VERSION > version.txt
         shell: bash
 
-      - name: Commit updated version
-        run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git add version.txt
-          git commit -m "Bump version to ${{ env.NEW_VERSION }}"
-          git push
-
       - name: Debugging Information
         run: |
           git remote -v
