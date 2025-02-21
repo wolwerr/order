@@ -20,7 +20,7 @@ public class KafkaProducerConfig {
         this.topic = topic;
     }
 
-    protected void send(String key, String value) {
+    public void send(String key, String value) {
         System.out.println("Message: " + value);
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
         producer.send(record, (metadata, exception) -> {

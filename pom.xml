@@ -136,9 +136,8 @@
                         </goals>
                         <configuration>
                             <excludes>
-                                <exclude>**/infra/config/**</exclude>
-                                <exclude>**/dependency/kafka/resolver/consumers/**</exclude>
-                                <exclude>**/dependency/kafka/resolver/producers/**</exclude>
+                                <exclude>**/org/test/order/infra/config/**</exclude>
+                                <exclude>**/org/test/order/infra/dependency/**</exclude>
                             </excludes>
                         </configuration>
                     </execution>

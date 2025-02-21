@@ -26,19 +26,12 @@ public class ItemConsumerTest {
         ItemMongoRepository mockRepo = mock(ItemMongoRepository.class);
         KafkaConsumer mockConsumer = mock(KafkaConsumer.class);
 
-        ConsumerRecord<String, String> record = new ConsumerRecord<>(
-                "item", 0, 0L, "key",
-                "{\"uuid\":\"550e8400-e29b-41d4-a716-446655440000\"," +
-                        "\"name\":\"test item\"," +
-                        "\"value\":10.0," +
-                        "\"quantity\":1," +
-                        "\"createdAt\":\"2023-01-01T10:00:00\"," +
-                        "\"updatedAt\":\"2023-01-01T10:00:00\"}"
-        );
-
-        ConsumerRecords<String, String> records = new ConsumerRecords<>(
-                Collections.singletonMap(new TopicPartition("item", 0), Collections.singletonList(record))
-        );
+        ConsumerRecords<String, String> records = getConsumerRecords("{\"uuid\":\"550e8400-e29b-41d4-a716-446655440000\"," +
+                "\"name\":\"test item\"," +
+                "\"value\":10.0," +
+                "\"quantity\":1," +
+                "\"createdAt\":\"2023-01-01T10:00:00\"," +
+                "\"updatedAt\":\"2023-01-01T10:00:00\"}");
 
         when(mockConsumer.poll(any(Duration.class)))
                 .thenReturn(records)
@@ -67,6 +60,17 @@ public class ItemConsumerTest {
         mockConsumer.wakeup();
     }
 
+    private static ConsumerRecords<String, String> getConsumerRecords(String x) {
+        ConsumerRecord<String, String> record = new ConsumerRecord<>(
+                "item", 0, 0L, "key",
+                x
+        );
+
+        return new ConsumerRecords<>(
+                Collections.singletonMap(new TopicPartition("item", 0), Collections.singletonList(record))
+        );
+    }
+
 
     @Test
     public void test_handle_invalid_json_message() {
@@ -74,13 +78,7 @@ public class ItemConsumerTest {
         ItemMongoRepository mockRepo = mock(ItemMongoRepository.class);
         KafkaConsumer mockConsumer = mock(KafkaConsumer.class);
 
-        ConsumerRecord<String, String> record = new ConsumerRecord<>(
-                "item", 0, 0L, "key", "invalid json"
-        );
-
-        ConsumerRecords<String, String> records = new ConsumerRecords<>(
-                Collections.singletonMap(new TopicPartition("item", 0), Collections.singletonList(record))
-        );
+        ConsumerRecords<String, String> records = getConsumerRecords("invalid json");
 
         when(mockConsumer.poll(any(Duration.class)))
                 .thenReturn(records)
@@ -114,19 +112,12 @@ public class ItemConsumerTest {
         Item existingItem = new Item();
         existingItem.setUuid(existingUuid);
 
-        ConsumerRecord<String, String> record = new ConsumerRecord<>(
-                "item", 0, 0L, "key",
-                "{\"uuid\":\"550e8400-e29b-41d4-a716-446655440000\"," +
-                        "\"name\":\"test item\"," +
-                        "\"value\":10.0," +
-                        "\"quantity\":1," +
-                        "\"createdAt\":\"2023-01-01T10:00:00\"," +
-                        "\"updatedAt\":\"2023-01-01T10:00:00\"}"
-        );
-
-        ConsumerRecords<String, String> records = new ConsumerRecords<>(
-                Collections.singletonMap(new TopicPartition("item", 0), Collections.singletonList(record))
-        );
+        ConsumerRecords<String, String> records = getConsumerRecords("{\"uuid\":\"550e8400-e29b-41d4-a716-446655440000\"," +
+                "\"name\":\"test item\"," +
+                "\"value\":10.0," +
+                "\"quantity\":1," +
+                "\"createdAt\":\"2023-01-01T10:00:00\"," +
+                "\"updatedAt\":\"2023-01-01T10:00:00\"}");
 
         when(mockConsumer.poll(any(Duration.class)))
                 .thenReturn(records)
@@ -161,18 +152,12 @@ public class ItemConsumerTest {
 
         String invalidJson = "{\"uuid\":\"" + uuid + "\"," +
                 "\"name\":\"test item\"," +
-                "\"value\":-10.0," +  // Valor inválido
+                "\"value\":-10.0," +
                 "\"quantity\":1," +
                 "\"createdAt\":\"2023-01-01T10:00:00\"," +
                 "\"updatedAt\":\"2023-01-01T10:00:00\"}";
 
-        ConsumerRecord<String, String> record = new ConsumerRecord<>(
-                "item", 0, 0L, "key", invalidJson
-        );
-
-        ConsumerRecords<String, String> records = new ConsumerRecords<>(
-                Collections.singletonMap(new TopicPartition("item", 0), Collections.singletonList(record))
-        );
+        ConsumerRecords<String, String> records = getConsumerRecords(invalidJson);
 
         when(mockConsumer.poll(any(Duration.class)))
                 .thenReturn(records)
@@ -207,18 +192,12 @@ public class ItemConsumerTest {
 
         String invalidJson = "{\"uuid\":\"" + uuid + "\"," +
                 "\"name\":\"test item\"," +
-                "\"value\":10.0," +  // Valor válido
-                "\"quantity\":-1," +  // Quantidade inválida
+                "\"value\":10.0," +
+                "\"quantity\":-1," +
                 "\"createdAt\":\"2023-01-01T10:00:00\"," +
                 "\"updatedAt\":\"2023-01-01T10:00:00\"}";
 
-        ConsumerRecord<String, String> record = new ConsumerRecord<>(
-                "item", 0, 0L, "key", invalidJson
-        );
-
-        ConsumerRecords<String, String> records = new ConsumerRecords<>(
-                Collections.singletonMap(new TopicPartition("item", 0), Collections.singletonList(record))
-        );
+        ConsumerRecords<String, String> records = getConsumerRecords(invalidJson);
 
         when(mockConsumer.poll(any(Duration.class)))
                 .thenReturn(records)

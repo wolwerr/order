@@ -8,7 +8,7 @@ import org.test.order.infra.kafka.consumers.ItemConsumer;
 @SpringBootApplication
 public class OrderApplication {
 
-    private final ItemConsumer consumer;
+    final ItemConsumer consumer;
 
     public OrderApplication(ItemConsumer consumer) {
         this.consumer = consumer;
