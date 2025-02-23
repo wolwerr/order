@@ -10,6 +10,7 @@ services:
       - "8080:8080"
     depends_on:
       - mongodb
+      - redis
     environment:
       SPRING_DATA_MONGODB_URI: mongodb://mongo:my-secret-pw@mongodb:27017/order?authSource=admin
       SPRING_PROFILES_ACTIVE: hom
@@ -26,7 +27,6 @@ services:
     volumes:
       - mongodb_data:/data/db/
       - /etc/timezone:/etc/timezone:ro
-
 
   mongo-express:
     image: mongo-express:latest
@@ -60,6 +60,12 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
 
 volumes:
   mongodb_data:
