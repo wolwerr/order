@@ -1,6 +1,5 @@
 package org.test.order.domain.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.test.order.domain.enuns.StatusOrder;
@@ -18,7 +17,6 @@ public class OrderEntity {
     private UUID uuid;
     private String orderNumber;
     private StatusOrder statusOrder;
-    @JsonIgnore
     private Double totalValue = 0.0;
     private UUID customerId;
     private LocalDateTime createdAt;

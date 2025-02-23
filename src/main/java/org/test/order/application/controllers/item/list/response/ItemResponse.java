@@ -1,6 +1,8 @@
 package org.test.order.application.controllers.item.list.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -8,6 +10,8 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ItemResponse {
     private UUID uuid;
     private String name;
@@ -16,12 +20,4 @@ public class ItemResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public ItemResponse(UUID uuid, String name, int quantity, Double value, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.uuid = uuid;
-        this.name = name;
-        this.quantity = quantity;
-        this.value = value;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
 }

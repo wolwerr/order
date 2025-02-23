@@ -36,7 +36,7 @@ public class ListAllItemsSteps {
         this.mockServer = MockRestServiceServer.createServer(this.restTemplate);
     }
 
-    @Given("the system has the following items")
+    @Given("the system has the following items for listing")
     public void theSystemHasTheFollowingItems(List<Map<String, String>> items) throws Exception {
         itemMongoRepository.deleteAll();
         DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;

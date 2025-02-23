@@ -1,6 +1,5 @@
 package org.test.order.domain.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.test.order.domain.exception.item.ItemEmptyException;
@@ -14,11 +13,13 @@ import java.util.UUID;
 public class ItemEntity {
     private UUID uuid;
     private String name;
-    @JsonIgnore
     private Double value = 0.0;
     private Integer quantity;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public ItemEntity() {
+    }
 
     public double verifyValue() throws ItemValueZeroException {
         if (value < 0) {

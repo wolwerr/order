@@ -39,7 +39,7 @@ public class CreateOrderUseCase {
                             ItemEntity itemEntity = new ItemEntity(item.getUuid(), item.getName(), item.getValue(), item.getQuantity(), item.getCreatedAt(), item.getUpdatedAt());
                             itemEntity.verifyQuantity(); // Verify the quantity of the item
                             return itemEntity;
-                        } catch (ItemValueZeroException | ItemEmptyException e) {
+                        } catch (ItemEmptyException | ItemValueZeroException e) {
                             throw new RuntimeException(e);
                         }
                     })
