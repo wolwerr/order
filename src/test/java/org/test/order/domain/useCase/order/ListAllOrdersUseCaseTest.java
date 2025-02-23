@@ -26,8 +26,8 @@ class ListAllOrdersUseCaseTest {
         ListOrdersInterface mockListOrdersInterface = mock(ListOrdersInterface.class);
         when(mockListOrdersInterface.listOrders()).thenReturn(mockOrders);
 
-        CacheInterface mockCache = mock(CacheInterface.class); // Adicione o segundo argumento
-        ListAllOrdersUseCase useCase = new ListAllOrdersUseCase(mockListOrdersInterface, mockCache); // Passe o segundo argumento
+        CacheInterface mockCache = mock(CacheInterface.class);
+        ListAllOrdersUseCase useCase = new ListAllOrdersUseCase(mockListOrdersInterface, mockCache);
 
         // Act
         useCase.execute();
@@ -46,8 +46,8 @@ class ListAllOrdersUseCaseTest {
         ListOrdersInterface mockListOrdersInterface = mock(ListOrdersInterface.class);
         when(mockListOrdersInterface.listOrders()).thenReturn(null);
 
-        CacheInterface mockCache = mock(CacheInterface.class); // Adicione o segundo argumento
-        ListAllOrdersUseCase useCase = new ListAllOrdersUseCase(mockListOrdersInterface, mockCache); // Passe o segundo argumento
+        CacheInterface mockCache = mock(CacheInterface.class);
+        ListAllOrdersUseCase useCase = new ListAllOrdersUseCase(mockListOrdersInterface, mockCache);
 
         // Act
         useCase.execute();
@@ -56,7 +56,7 @@ class ListAllOrdersUseCaseTest {
         OutputInterface output = useCase.getListAllOrdersOutput();
         assertNotNull(output);
         assertTrue(output instanceof OutputError);
-        assertEquals(500, ((OutputError) output).getOutputStatus().getCode());
+        assertEquals(500, output.getOutputStatus().getCode());
         assertEquals("Error to list orders", ((OutputError) output).getMensagem());
     }
 }
