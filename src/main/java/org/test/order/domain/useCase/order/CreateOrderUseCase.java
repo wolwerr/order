@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.test.order.domain.entity.ItemEntity;
 import org.test.order.domain.entity.OrderEntity;
 import org.test.order.domain.exception.item.ItemEmptyException;
+import org.test.order.domain.exception.item.ItemNotFoundException;
 import org.test.order.domain.exception.item.ItemValueZeroException;
 import org.test.order.domain.exception.order.OrderValueZeroException;
 import org.test.order.domain.gateway.order.CreateOrderInterface;
@@ -38,7 +39,7 @@ public class CreateOrderUseCase {
                     .map(item -> {
                         try {
                             var dbItem = itemMongoRepository.findById(item.uuid().toString())
-                                    .orElseThrow(() -> new RuntimeException("Item not found"));
+                                    .orElseThrow(() -> new ItemNotFoundException("Item not found: " + item.uuid()));
                             ItemEntity itemEntity = new ItemEntity(
                                     dbItem.getUuid(),
                                     dbItem.getName(),
@@ -49,7 +50,7 @@ public class CreateOrderUseCase {
                             );
                             itemEntity.verifyQuantity();
                             return itemEntity;
-                        } catch (ItemEmptyException | ItemValueZeroException e) {
+                        } catch (ItemEmptyException | ItemValueZeroException | ItemNotFoundException e) {
                             throw new RuntimeException(e);
                         }
                     })
