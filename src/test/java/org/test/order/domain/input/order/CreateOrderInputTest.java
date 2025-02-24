@@ -2,7 +2,7 @@ package org.test.order.domain.input.order;
 
 import org.junit.jupiter.api.Test;
 import org.test.order.domain.enuns.StatusOrder;
-import org.test.order.infra.collection.item.Item;
+import org.test.order.domain.input.item.ItemCreateOrderInput;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,15 +18,14 @@ class CreateOrderInputTest {
         UUID orderId = UUID.randomUUID();
         UUID customerId = UUID.randomUUID();
         LocalDateTime now = LocalDateTime.now();
-        List<Item> items = List.of(
-                new Item(UUID.randomUUID(), "Item 1", 10.0, 1, now, now)
+        List<ItemCreateOrderInput> items = List.of(
+                new ItemCreateOrderInput(UUID.randomUUID(), 1)
         );
 
         CreateOrderInput input = new CreateOrderInput(
                 orderId,
                 "ORD123",
                 StatusOrder.PENDING,
-                0.0,
                 customerId,
                 now,
                 now,
@@ -37,7 +36,6 @@ class CreateOrderInputTest {
         assertEquals(orderId, input.uuid());
         assertEquals("ORD123", input.orderNumber());
         assertEquals(StatusOrder.PENDING, input.statusOrder());
-        assertEquals(0.0, input.totalValue());
         assertEquals(customerId, input.customerId());
         assertEquals(now, input.createdAt());
         assertEquals(now, input.updatedAt());
@@ -49,15 +47,14 @@ class CreateOrderInputTest {
     public void test_create_order_with_null_uuid() {
         UUID customerId = UUID.randomUUID();
         LocalDateTime now = LocalDateTime.now();
-        List<Item> items = List.of(
-                new Item(UUID.randomUUID(), "Item 1", 10.0, 1, now, now)
+        List<ItemCreateOrderInput> items = List.of(
+                new ItemCreateOrderInput(UUID.randomUUID(), 1)
         );
 
         CreateOrderInput input = new CreateOrderInput(
                 null,
                 "ORD123",
                 StatusOrder.PENDING,
-                0.0,
                 customerId,
                 now,
                 now,
@@ -68,7 +65,6 @@ class CreateOrderInputTest {
         assertNull(input.uuid());
         assertEquals("ORD123", input.orderNumber());
         assertEquals(StatusOrder.PENDING, input.statusOrder());
-        assertEquals(0.0, input.totalValue());
         assertEquals(customerId, input.customerId());
         assertEquals(now, input.createdAt());
         assertEquals(now, input.updatedAt());

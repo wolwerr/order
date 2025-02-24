@@ -16,7 +16,7 @@ public class RedisCache implements CacheInterface {
 
     @Override
     public void cacheData(String key, Object data) {
-        redisTemplate.opsForValue().set(key, data, 1, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(key, data, 10, TimeUnit.SECONDS);
     }
 
     @Override

@@ -3,6 +3,7 @@ package org.test.order.domain.entity;
 import lombok.Getter;
 import lombok.Setter;
 import org.test.order.domain.enuns.StatusOrder;
+import org.test.order.domain.exception.order.OrderValueZeroException;
 import org.test.order.infra.collection.item.Item;
 import org.test.order.infra.repository.ItemMongoRepository;
 
@@ -52,5 +53,11 @@ public class OrderEntity {
             }
         }
         return true;
+    }
+
+    public void verifyTotalValue() throws OrderValueZeroException {
+        if (this.totalValue == 0.0) {
+            throw new OrderValueZeroException("Order total value cannot be zero");
+        }
     }
 }

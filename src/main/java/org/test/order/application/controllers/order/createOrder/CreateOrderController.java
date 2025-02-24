@@ -14,15 +14,12 @@ import org.test.order.domain.generic.output.OutputInterface;
 import org.test.order.domain.input.order.CreateOrderInput;
 import org.test.order.domain.useCase.order.CreateOrderUseCase;
 import org.test.order.infra.adpter.repository.order.CreateOrderRepository;
-import org.test.order.infra.collection.item.Item;
 import org.test.order.infra.kafka.producers.OrderProducer;
 import org.test.order.infra.repository.ItemMongoRepository;
 import org.test.order.infra.repository.OrderMongoRepository;
 import io.swagger.v3.oas.annotations.Operation;
 
 
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,9 +48,7 @@ public class CreateOrderController {
     )
     @Transactional
     public ResponseEntity<Object> createOrder(@RequestBody CreateOrderInput createOrderInput) {
-        List<Item> items = new ArrayList<>(createOrderInput.items());
-
-        OutputInterface outputInterface = getOutputInterface(createOrderInput, items);
+        OutputInterface outputInterface = getOutputInterface(createOrderInput);
         if (outputInterface.getOutputStatus().getCode() != 201) {
             return new GenericResponse().response(outputInterface);
         }
@@ -61,22 +56,12 @@ public class CreateOrderController {
         return ResponseEntity.status(outputInterface.getOutputStatus().getCode()).body(outputInterface.getBody());
     }
 
-    private OutputInterface getOutputInterface(CreateOrderInput createOrderInput, List<Item> items) {
-        CreateOrderInput input = new CreateOrderInput(
-                createOrderInput.uuid(),
-                createOrderInput.orderNumber(),
-                createOrderInput.statusOrder(),
-                createOrderInput.totalValue(),
-                createOrderInput.customerId(),
-                createOrderInput.createdAt(),
-                createOrderInput.updatedAt(),
-                items
-        );
+    private OutputInterface getOutputInterface(CreateOrderInput createOrderInput) {
         CreateOrderUseCase useCase = new CreateOrderUseCase(
                 new CreateOrderRepository(orderMongoRepository, itemMongoRepository),
                 new OrderProducer(servers), itemMongoRepository
         );
-        useCase.execute(input);
+        useCase.execute(createOrderInput);
         return useCase.getCreateOrderOutput();
     }
 }

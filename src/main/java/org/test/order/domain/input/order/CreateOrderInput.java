@@ -2,7 +2,7 @@ package org.test.order.domain.input.order;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.test.order.domain.enuns.StatusOrder;
-import org.test.order.infra.collection.item.Item;
+import org.test.order.domain.input.item.ItemCreateOrderInput;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,9 +19,6 @@ public record CreateOrderInput(
         @Schema(description = "Current status of the order", example = "APPROVED")
         StatusOrder statusOrder,
 
-        @Schema(description = "Always will be zero", example = "0.00", required = false)
-        Double totalValue,
-
         @Schema(description = "Customer identifier", example = "223e4567-e89b-12d3-a456-426614174007")
         UUID customerId,
 
@@ -32,6 +29,6 @@ public record CreateOrderInput(
         LocalDateTime updatedAt,
 
         @Schema(description = "List of items included in the order")
-        List<Item> items
+        List<ItemCreateOrderInput> items
 ) {
 }

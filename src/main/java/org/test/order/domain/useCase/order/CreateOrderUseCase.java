@@ -9,6 +9,7 @@ import org.test.order.domain.entity.ItemEntity;
 import org.test.order.domain.entity.OrderEntity;
 import org.test.order.domain.exception.item.ItemEmptyException;
 import org.test.order.domain.exception.item.ItemValueZeroException;
+import org.test.order.domain.exception.order.OrderValueZeroException;
 import org.test.order.domain.gateway.order.CreateOrderInterface;
 import org.test.order.domain.generic.output.OutputError;
 import org.test.order.domain.generic.output.OutputInterface;
@@ -36,8 +37,17 @@ public class CreateOrderUseCase {
             List<ItemEntity> itemEntities = createOrderInput.items().stream()
                     .map(item -> {
                         try {
-                            ItemEntity itemEntity = new ItemEntity(item.getUuid(), item.getName(), item.getValue(), item.getQuantity(), item.getCreatedAt(), item.getUpdatedAt());
-                            itemEntity.verifyQuantity(); // Verify the quantity of the item
+                            var dbItem = itemMongoRepository.findById(item.uuid().toString())
+                                    .orElseThrow(() -> new RuntimeException("Item not found"));
+                            ItemEntity itemEntity = new ItemEntity(
+                                    dbItem.getUuid(),
+                                    dbItem.getName(),
+                                    dbItem.getValue(),
+                                    item.quantity(),
+                                    dbItem.getCreatedAt(),
+                                    dbItem.getUpdatedAt()
+                            );
+                            itemEntity.verifyQuantity();
                             return itemEntity;
                         } catch (ItemEmptyException | ItemValueZeroException e) {
                             throw new RuntimeException(e);
@@ -45,16 +55,22 @@ public class CreateOrderUseCase {
                     })
                     .collect(Collectors.toList());
 
+            double totalValue = itemEntities.stream()
+                    .mapToDouble(item -> item.getValue() * item.getQuantity())
+                    .sum();
+
             OrderEntity orderEntity = new OrderEntity(
                     createOrderInput.uuid(),
                     createOrderInput.orderNumber(),
                     createOrderInput.statusOrder(),
-                    createOrderInput.totalValue(),
+                    totalValue,
                     createOrderInput.customerId(),
                     createOrderInput.createdAt(),
                     createOrderInput.updatedAt(),
                     itemEntities
             );
+
+            orderEntity.verifyTotalValue();
 
             if (!orderEntity.hasSufficientStock(itemMongoRepository)) {
                 this.createOrderOutput = new OutputError(
@@ -70,6 +86,12 @@ public class CreateOrderUseCase {
                     new OutputStatus(201, "Created", "Order created successfully")
             );
 
+        } catch (OrderValueZeroException e) {
+            logger.error("Order total value cannot be zero: {}", e.getMessage(), e);
+            this.createOrderOutput = new OutputError(
+                    e.getMessage(),
+                    new OutputStatus(400, "Bad Request", "Order total value cannot be zero")
+            );
         } catch (Exception e) {
             logger.error("Error creating order: {}", e.getMessage(), e);
             this.createOrderOutput = new OutputError(
