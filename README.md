@@ -8,8 +8,10 @@ Este projeto utiliza as seguintes tecnologias e ferramentas:
 - **Spring Boot** - Framework para facilitar o desenvolvimento
 - **Maven** - Gerenciador de dependências
 - **MongoDB** - Banco de dados NoSQL utilizado para persistência
+- **Redis** - Banco de dados em memória para cache
 - **Kafka** - Sistema de mensageria para comunicação assíncrona
 - **Docker** - Ferramenta de conteinerização para facilitar a execução
+
 
 ## 🚀 Como Executar o Projeto
 
