@@ -1,17 +1,18 @@
 package org.test.order.domain.entity;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.test.order.domain.enuns.StatusOrder;
 import org.test.order.domain.exception.item.ItemEmptyException;
 import org.test.order.domain.exception.item.ItemValueZeroException;
+import org.test.order.infra.collection.item.Item;
+import org.test.order.infra.repository.ItemMongoRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 class OrderEntityTest {
 
@@ -93,6 +94,30 @@ class OrderEntityTest {
         double totalValue = order.calculateTotalValue();
 
         assertEquals(0.0, totalValue);
+    }
+
+    @Test
+    public void test_hasSufficientStock_returns_false_when_item_out_of_stock() throws ItemValueZeroException, ItemEmptyException {
+        // Arrange
+        ItemMongoRepository mockItemRepo = Mockito.mock(ItemMongoRepository.class);
+        UUID itemId = UUID.randomUUID();
+        ItemEntity itemEntity = new ItemEntity(itemId, "Item1", 10.0, 5, null, null);
+        List<ItemEntity> itemEntities = List.of(itemEntity);
+
+        OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setItem(itemEntities);
+
+        Item stockItem = new Item();
+        stockItem.setUuid(itemId);
+        stockItem.setQuantity(3); // Less than required quantity
+
+        when(mockItemRepo.findById(itemId.toString())).thenReturn(Optional.of(stockItem));
+
+        // Act
+        boolean result = orderEntity.hasSufficientStock(mockItemRepo);
+
+        // Assert
+        assertFalse(result);
     }
 
 }
