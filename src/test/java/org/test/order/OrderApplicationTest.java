@@ -1,8 +1,11 @@
 package org.test.order;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.test.order.domain.exception.item.ItemEmptyException;
+import org.test.order.domain.exception.item.ItemValueZeroException;
 import org.test.order.infra.kafka.consumers.ItemConsumer;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,7 +14,7 @@ import static org.mockito.Mockito.*;
 class OrderApplicationTest {
     // Application successfully initializes and starts the Spring context
     @Test
-    public void test_application_starts_successfully() {
+    public void test_application_starts_successfully() throws ItemValueZeroException, ItemEmptyException, JsonProcessingException {
         ItemConsumer mockConsumer = mock(ItemConsumer.class);
 
         OrderApplication application = new OrderApplication(mockConsumer);
@@ -23,7 +26,7 @@ class OrderApplicationTest {
 
     // Handle ItemConsumer initialization failure
     @Test
-    public void test_consumer_initialization_failure() {
+    public void test_consumer_initialization_failure() throws ItemValueZeroException, ItemEmptyException, JsonProcessingException {
         ItemConsumer mockConsumer = mock(ItemConsumer.class);
         doThrow(new RuntimeException("Consumer initialization failed"))
                 .when(mockConsumer)
@@ -38,7 +41,7 @@ class OrderApplicationTest {
 
     // Consumer thread starts correctly after application initialization
     @Test
-    public void test_consumer_thread_starts_on_initialization() {
+    public void test_consumer_thread_starts_on_initialization() throws ItemValueZeroException, ItemEmptyException, JsonProcessingException {
         ItemConsumer mockConsumer = Mockito.mock(ItemConsumer.class);
         OrderApplication app = new OrderApplication(mockConsumer);
         app.startConsumer();

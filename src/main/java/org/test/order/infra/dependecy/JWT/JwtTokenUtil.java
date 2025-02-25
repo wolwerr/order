@@ -1,6 +1,5 @@
 package org.test.order.infra.dependecy.JWT;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -46,9 +45,9 @@ public class JwtTokenUtil {
         }
     }
 
-    private Claims getAllClaimsFromToken(String token) {
+    private void getAllClaimsFromToken(String token) {
         try {
-            return Jwts.parser()
+            Jwts.parser()
                     .setSigningKey(getSigningKey())
                     .parseClaimsJws(token)
                     .getBody();
@@ -58,7 +57,7 @@ public class JwtTokenUtil {
     }
 
     public boolean validateAuthorizationHeader(String authorizationHeader) {
-        if (!authorizationHeader.startsWith("Bearer ")) {
+        if (authorizationHeader == null ) {
             throw new SecurityException("Invalid Authorization header");
         }
         String apiKey = authorizationHeader.substring(7);

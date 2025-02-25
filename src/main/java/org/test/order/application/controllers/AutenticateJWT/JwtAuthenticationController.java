@@ -1,5 +1,6 @@
 package org.test.order.application.controllers.AutenticateJWT;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,7 +15,7 @@ public class JwtAuthenticationController {
     private final JwtTokenUtil jwtTokenUtil;
 
     @PostMapping("/auth/token")
-    public String generateToken(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+    public String generateToken(@Parameter(hidden = true) @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         if (!jwtTokenUtil.validateAuthorizationHeader(authorizationHeader)) {
             throw new SecurityException("Invalid API Key");
         }
