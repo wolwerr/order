@@ -1,5 +1,6 @@
 package org.test.order.infra.kafka.consumers;
 
+import lombok.SneakyThrows;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -20,6 +21,7 @@ import static org.mockito.Mockito.*;
 public class ItemConsumerTest {
 
 
+    @SneakyThrows
     @Test
     public void test_consume_and_save_valid_item() {
         // Arrange
@@ -72,6 +74,7 @@ public class ItemConsumerTest {
     }
 
 
+    @SneakyThrows
     @Test
     public void test_handle_invalid_json_message() {
         // Arrange
@@ -101,6 +104,7 @@ public class ItemConsumerTest {
         mockConsumer.wakeup();
     }
 
+    @SneakyThrows
     @Test
     public void test_should_not_save_existing_item() {
         // Arrange
@@ -142,6 +146,7 @@ public class ItemConsumerTest {
         mockConsumer.wakeup();
     }
 
+    @SneakyThrows
     @Test
     public void test_should_not_save_item_with_invalid_value() {
         // Arrange
@@ -182,6 +187,7 @@ public class ItemConsumerTest {
     }
 
 
+    @SneakyThrows
     @Test
     public void test_should_not_save_item_with_invalid_quantity() {
         // Arrange

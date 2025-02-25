@@ -14,7 +14,7 @@ public class JwtAuthenticationController {
     private final JwtTokenUtil jwtTokenUtil;
 
     @PostMapping("/auth/token")
-    public String generateToken(@RequestHeader("Authorization") String authorizationHeader) {
+    public String generateToken(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         if (!jwtTokenUtil.validateAuthorizationHeader(authorizationHeader)) {
             throw new SecurityException("Invalid API Key");
         }

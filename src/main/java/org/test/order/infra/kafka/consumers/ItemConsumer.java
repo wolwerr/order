@@ -1,7 +1,10 @@
 package org.test.order.infra.kafka.consumers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -35,56 +38,57 @@ public class ItemConsumer {
 
     public void runConsumer() {
         try {
-            boolean running = true;
-            while (running && !Thread.currentThread().isInterrupted()) {
-
+            while (!Thread.currentThread().isInterrupted()) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
 
-                if (records.isEmpty()) {
-                    continue;
-                }
-
-                for (ConsumerRecord<String, String> record : records) {
-                    logger.info("Mensagem recebida - Tópico: {}, Chave: {}, Valor: {}", record.topic(), record.key(), record.value());
-                    try {
-                        JsonNode messageJson = objectMapper.readTree(record.value());
-                        UUID uuidItem = UUID.fromString(messageJson.get("uuid").asText());
-
-                        if (itemMongoRepository.findByUuid(uuidItem).isPresent()) {
-                            logger.error("Item com UUID {} já existe. Pulando salvamento.", uuidItem);
-                            continue;
-                        }
-
-                        String name = messageJson.get("name").asText();
-                        double totalValue = messageJson.get("value").asDouble();
-                        int quantity = messageJson.get("quantity").asInt();
-                        LocalDateTime createdAt = LocalDateTime.parse(messageJson.get("createdAt").asText());
-                        LocalDateTime updatedAt = LocalDateTime.parse(messageJson.get("updatedAt").asText());
-
-                        if (totalValue < 0) {
-                            throw new ItemValueZeroException("O valor deve ser maior que 0");
-                        }
-                        if (quantity < 0) {
-                            throw new ItemEmptyException("A quantidade deve ser maior que 0");
-                        }
-
-                        Item item = new Item(uuidItem, name, totalValue, quantity, createdAt, updatedAt);
-                        itemMongoRepository.save(item);
-                        logger.info("Item com UUID {} salvo com sucesso.", uuidItem);
-
-                    } catch (Exception e) {
-
-                        logger.error("Erro ao processar mensagem: {}", e.getMessage());
-                    }
+                if (!records.isEmpty()) {
+                    processMessages(records);
                 }
             }
         } finally {
-
             this.consumer.close();
             logger.info("Kafka closed.");
         }
     }
 
+    @CircuitBreaker(name = "backendA", fallbackMethod = "fallback")
+    @Retry(name = "backendA")
+    public void processMessages(ConsumerRecords<String, String> records) {
+        for (ConsumerRecord<String, String> record : records) {
+            logger.info("Message received - Topic: {}, Key: {}, Value: {}", record.topic(), record.key(), record.value());
+            try {
+                JsonNode messageJson = objectMapper.readTree(record.value());
+                UUID uuidItem = UUID.fromString(messageJson.get("uuid").asText());
 
+                if (itemMongoRepository.findByUuid(uuidItem).isPresent()) {
+                    logger.warn("Item with UUID {} already exists. Skipping save.", uuidItem);
+                    continue;
+                }
 
+                String name = messageJson.get("name").asText();
+                double totalValue = messageJson.get("value").asDouble();
+                int quantity = messageJson.get("quantity").asInt();
+                LocalDateTime createdAt = LocalDateTime.parse(messageJson.get("createdAt").asText());
+                LocalDateTime updatedAt = LocalDateTime.parse(messageJson.get("updatedAt").asText());
+
+                if (totalValue < 0) {
+                    throw new ItemValueZeroException("The value must be greater than 0");
+                }
+                if (quantity < 0) {
+                    throw new ItemEmptyException("The quantity must be greater than 0");
+                }
+
+                Item item = new Item(uuidItem, name, totalValue, quantity, createdAt, updatedAt);
+                itemMongoRepository.save(item);
+                logger.info("Item with UUID {} saved successfully.", uuidItem);
+
+            } catch (ItemValueZeroException | ItemEmptyException | JsonProcessingException e) {
+                logger.error("Error processing message: {}", e.getMessage(), e);
+            }
+        }
+    }
+
+    public void fallback(Throwable t) {
+        logger.error("Fallback method called due to: {}", t.getMessage(), t);
+    }
 }
