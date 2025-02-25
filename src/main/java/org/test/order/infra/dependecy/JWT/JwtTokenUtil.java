@@ -29,7 +29,7 @@ public class JwtTokenUtil {
         long expirationTimeInMillis = expirationTimeInMinutes * 1000 * 60;
 
         return Jwts.builder()
-                .setSubject("test") // Defina um subject, mesmo que genérico
+                .setSubject("admin")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTimeInMillis))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -55,5 +55,13 @@ public class JwtTokenUtil {
         } catch (Exception e) {
             throw new IllegalArgumentException("Token inválido ou com formato incorreto", e);
         }
+    }
+
+    public boolean validateAuthorizationHeader(String authorizationHeader) {
+        if (!authorizationHeader.startsWith("Bearer ")) {
+            throw new SecurityException("Invalid Authorization header");
+        }
+        String apiKey = authorizationHeader.substring(7);
+        return secretKey.equals(apiKey);
     }
 }
