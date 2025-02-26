@@ -1,8 +1,8 @@
 package org.test.order.application.controllers.order.createOrder;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,23 +13,13 @@ import org.test.order.application.response.GenericResponse;
 import org.test.order.domain.generic.output.OutputInterface;
 import org.test.order.domain.input.order.CreateOrderInput;
 import org.test.order.domain.useCase.order.CreateOrderUseCase;
-import org.test.order.infra.adpter.repository.order.CreateOrderRepository;
-import org.test.order.infra.kafka.producers.OrderProducer;
-import org.test.order.infra.repository.ItemMongoRepository;
-import org.test.order.infra.repository.OrderMongoRepository;
-import io.swagger.v3.oas.annotations.Operation;
-
 
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/orders")
 public class CreateOrderController {
-    private final OrderMongoRepository orderMongoRepository;
-    private final ItemMongoRepository itemMongoRepository;
-
-    @Value("${spring.kafka.producer.bootstrap-servers}")
-    private String servers;
+    private final CreateOrderUseCase createOrderUseCase;
 
     @PostMapping
     @Operation(
@@ -47,7 +37,7 @@ public class CreateOrderController {
             }
     )
     @Transactional
-    public ResponseEntity<Object> createOrder(@RequestBody CreateOrderInput createOrderInput) {
+    public ResponseEntity<Object> createOrder(@RequestBody CreateOrderInput createOrderInput) throws Exception {
         OutputInterface outputInterface = getOutputInterface(createOrderInput);
         if (outputInterface.getOutputStatus().getCode() != 201) {
             return new GenericResponse().response(outputInterface);
@@ -56,12 +46,8 @@ public class CreateOrderController {
         return ResponseEntity.status(outputInterface.getOutputStatus().getCode()).body(outputInterface.getBody());
     }
 
-    private OutputInterface getOutputInterface(CreateOrderInput createOrderInput) {
-        CreateOrderUseCase useCase = new CreateOrderUseCase(
-                new CreateOrderRepository(orderMongoRepository, itemMongoRepository),
-                new OrderProducer(servers), itemMongoRepository
-        );
-        useCase.execute(createOrderInput);
-        return useCase.getCreateOrderOutput();
+    private OutputInterface getOutputInterface(CreateOrderInput createOrderInput) throws Exception {
+        createOrderUseCase.execute(createOrderInput);
+        return createOrderUseCase.getCreateOrderOutput();
     }
 }

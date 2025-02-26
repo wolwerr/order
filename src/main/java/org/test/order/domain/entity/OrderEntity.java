@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.test.order.domain.enuns.StatusOrder;
 import org.test.order.domain.exception.order.OrderValueZeroException;
+import org.test.order.infra.collection.Fallback.FallbackEnum;
 import org.test.order.infra.collection.item.Item;
 import org.test.order.infra.repository.ItemMongoRepository;
 
@@ -23,6 +24,8 @@ public class OrderEntity {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<ItemEntity> item;
+    private FallbackEnum fallbackStatus;
+
 
     public OrderEntity(UUID uuid, String orderNumber, StatusOrder statusOrder, Double totalValue, UUID customerId, LocalDateTime createdAt, LocalDateTime updatedAt, List<ItemEntity> item) {
         this.uuid = UUID.randomUUID();
@@ -37,6 +40,18 @@ public class OrderEntity {
     }
 
     public OrderEntity() {
+    }
+
+    public OrderEntity(UUID id, String orderNumber, StatusOrder statusOrder, Double totalValue, UUID uuid, LocalDateTime createdAt, LocalDateTime updatedAt, List<ItemEntity> item, FallbackEnum fallbackStatus) {
+        this.uuid = id;
+        this.orderNumber = orderNumber;
+        this.statusOrder = statusOrder;
+        this.totalValue = totalValue;
+        this.customerId = uuid;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.item = item;
+        this.fallbackStatus = fallbackStatus;
     }
 
     public double calculateTotalValue() {

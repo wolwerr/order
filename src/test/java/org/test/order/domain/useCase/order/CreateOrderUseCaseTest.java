@@ -3,7 +3,6 @@ package org.test.order.domain.useCase.order;
 import org.junit.jupiter.api.Test;
 import org.test.order.domain.entity.OrderEntity;
 import org.test.order.domain.enuns.StatusOrder;
-import org.test.order.domain.exception.order.OrderValueZeroException;
 import org.test.order.domain.generic.output.OutputError;
 import org.test.order.domain.input.order.CreateOrderInput;
 import org.test.order.domain.input.item.ItemCreateOrderInput;
@@ -25,7 +24,7 @@ class CreateOrderUseCaseTest {
 
     // Successfully creates order with valid items and sufficient stock
     @Test
-    public void test_create_order_with_valid_items_and_stock() throws OrderValueZeroException {
+    public void test_create_order_with_valid_items_and_stock() throws Exception {
         // Arrange
         CreateOrderRepository mockRepository = mock(CreateOrderRepository.class);
         ItemMongoRepository mockItemRepo = mock(ItemMongoRepository.class);
@@ -61,7 +60,7 @@ class CreateOrderUseCaseTest {
 
     // Handles items with zero or negative quantities
     @Test
-    public void test_create_order_with_invalid_quantity() throws OrderValueZeroException {
+    public void test_create_order_with_invalid_quantity() throws Exception {
         // Arrange
         CreateOrderRepository mockRepository = mock(CreateOrderRepository.class);
         ItemMongoRepository mockItemRepo = mock(ItemMongoRepository.class);
@@ -94,7 +93,7 @@ class CreateOrderUseCaseTest {
     // Handles items with value below zero
 // Handles orders with total value of zero
     @Test
-    public void test_create_order_with_total_value_zero() throws OrderValueZeroException {
+    public void test_create_order_with_total_value_zero() throws Exception {
         // Arrange
         CreateOrderRepository mockRepository = mock(CreateOrderRepository.class);
         ItemMongoRepository mockItemRepo = mock(ItemMongoRepository.class);

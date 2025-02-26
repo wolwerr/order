@@ -134,6 +134,11 @@
             <artifactId>spring-security-jwt</artifactId>
             <version>1.0.10.RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>8.0.0.Final</version>
+        </dependency>
             <!-- Dependência JAXB API -->
             <dependency>
                 <groupId>javax.xml.bind</groupId>

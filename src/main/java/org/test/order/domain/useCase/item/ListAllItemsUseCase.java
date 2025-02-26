@@ -1,5 +1,7 @@
 package org.test.order.domain.useCase.item;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -35,8 +37,7 @@ public class ListAllItemsUseCase {
         }
 
         try {
-            List<ItemEntity> listItems = listItemIterface.findListaItens();
-            logger.debug("Fetched items: {}", listItems);
+            List<ItemEntity> listItems = fetchItems();
 
             if (listItems == null || listItems.isEmpty()) {
                 throw new Exception("No items found");
@@ -56,5 +57,16 @@ public class ListAllItemsUseCase {
                     new OutputStatus(500, "INTERNAL_SERVER_ERROR", "Error to list items")
             );
         }
+    }
+
+    @CircuitBreaker(name = "backendA", fallbackMethod = "fallback")
+    @Retry(name = "backendA")
+    private List<ItemEntity> fetchItems() {
+        return listItemIterface.findListaItens();
+    }
+
+    public List<ItemEntity> fallback(Throwable t) {
+        logger.error("Fallback method called due to: ", t);
+        return List.of();
     }
 }

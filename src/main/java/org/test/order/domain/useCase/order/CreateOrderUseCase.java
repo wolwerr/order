@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.test.order.domain.entity.ItemEntity;
 import org.test.order.domain.entity.OrderEntity;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @RequiredArgsConstructor
+@Component
 public class CreateOrderUseCase {
     private static final Logger logger = LoggerFactory.getLogger(CreateOrderUseCase.class);
     private final CreateOrderInterface createOrderRepository;
@@ -33,7 +35,7 @@ public class CreateOrderUseCase {
     private OutputInterface createOrderOutput;
 
     @Transactional
-    public void execute(CreateOrderInput createOrderInput) {
+    public void execute(CreateOrderInput createOrderInput) throws Exception {
         try {
             List<ItemEntity> itemEntities = createOrderInput.items().stream()
                     .map(item -> {
