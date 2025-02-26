@@ -1,17 +1,20 @@
 package org.test.order.infra.kafka.producers;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.test.order.domain.entity.ItemEntity;
 import org.test.order.domain.entity.OrderEntity;
 import org.test.order.domain.enuns.StatusOrder;
-import org.test.order.domain.exception.item.ItemEmptyException;
-import org.test.order.domain.exception.item.ItemValueZeroException;
 import org.test.order.domain.generic.output.OutputStatus;
 import org.test.order.domain.output.order.CreateOrderOutput;
+import org.test.order.infra.collection.Fallback.FallbackOrderEntity;
+import org.test.order.infra.repository.FallbackOrderRepository;
+
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,126 +22,91 @@ import static org.mockito.Mockito.*;
 
 class OrderProducerTest {
 
-    // Successfully send order message to Kafka with complete order and item details
-    @Test
-    public void test_send_order_with_complete_details() throws ItemValueZeroException, ItemEmptyException {
-        // Arrange
-        OrderProducer mockOrderProducer = mock(OrderProducer.class);
+    private KafkaTemplate<String, String> kafkaTemplate;
+    private FallbackOrderRepository fallbackOrderRepository;
+    private OrderProducer orderProducer;
 
-        UUID orderId = UUID.randomUUID();
-        UUID customerId = UUID.randomUUID();
-        UUID itemId = UUID.randomUUID();
-
-        ItemEntity item = new ItemEntity(
-                itemId,
-                "Test Item",
-                10.0,
-                2,
-                LocalDateTime.now(),
-                LocalDateTime.now()
-        );
-
-        List<ItemEntity> items = List.of(item);
-
-        OrderEntity order = new OrderEntity(
-                orderId,
-                "ORD-001",
-                StatusOrder.PENDING,
-                20.0,
-                customerId,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                items
-        );
-
-        OutputStatus outputStatus = new OutputStatus(200, "SUCCESS", "Order created successfully");
-        CreateOrderOutput output = new CreateOrderOutput(order, outputStatus);
-
-        // Act
-        doNothing().when(mockOrderProducer).sendOrder(output);
-
-        // Assert
-        assertDoesNotThrow(() -> mockOrderProducer.sendOrder(output));
-
-        // Verify
-        verify(mockOrderProducer, times(1)).sendOrder(output);
+    @BeforeEach
+    void setUp() {
+        kafkaTemplate = mock(KafkaTemplate.class);
+        fallbackOrderRepository = mock(FallbackOrderRepository.class);
+        orderProducer = new OrderProducer(kafkaTemplate, fallbackOrderRepository);
     }
 
-    // Handle order with empty item list
     @Test
-    public void test_send_order_with_empty_items() {
+    void shouldSendOrderSuccessfully() throws Exception {
         // Arrange
-        OrderProducer mockOrderProducer = mock(OrderProducer.class);
-
-        UUID orderId = UUID.randomUUID();
-        UUID customerId = UUID.randomUUID();
-
-        OrderEntity order = new OrderEntity(
-                orderId,
-                "ORD-002",
-                StatusOrder.PENDING,
-                0.0,
-                customerId,
-                LocalDateTime.now(),
-                LocalDateTime.now(),
-                new ArrayList<>()
-        );
-
-        OutputStatus outputStatus = new OutputStatus(200, "SUCCESS", "Order created successfully");
-        CreateOrderOutput output = new CreateOrderOutput(order, outputStatus);
+        OrderEntity orderEntity = createOrderEntity();
+        OutputStatus outputStatus = new OutputStatus(200, "SUCCESS", "Order created");
+        CreateOrderOutput createOrderOutput = new CreateOrderOutput(orderEntity, outputStatus);
 
         // Act
-        doNothing().when(mockOrderProducer).sendOrder(output);
+        orderProducer.sendOrder(createOrderOutput);
 
         // Assert
-        assertDoesNotThrow(() -> mockOrderProducer.sendOrder(output));
+        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
+        verify(kafkaTemplate, times(1)).send(anyString(), anyString(), messageCaptor.capture());
 
-        // Verify
-        verify(mockOrderProducer, times(1)).sendOrder(output);
+        String jsonMessage = messageCaptor.getValue();
+        assertNotNull(jsonMessage);
+        assertTrue(jsonMessage.contains(orderEntity.getUuid().toString()), "JSON should contain order UUID");
     }
 
-    // Successfully converts OrderEntity to JSON with all required fields
     @Test
-    public void test_convert_order_entity_to_json_successfully() throws ItemValueZeroException, ItemEmptyException {
+    void shouldFallbackWhenKafkaFails() {
         // Arrange
-        String kafkaServer = "localhost:9092";
-        OrderProducer orderProducer = spy(new OrderProducer(kafkaServer));
+        OrderEntity orderEntity = createOrderEntity();
+        OutputStatus outputStatus = new OutputStatus(200, "SUCCESS", "Order created");
+        CreateOrderOutput createOrderOutput = new CreateOrderOutput(orderEntity, outputStatus);
 
-        UUID orderId = UUID.randomUUID();
-        UUID customerId = UUID.randomUUID();
-        LocalDateTime now = LocalDateTime.now();
-
-        ItemEntity item = new ItemEntity(
-                UUID.randomUUID(),
-                "Test Item",
-                10.0,
-                2,
-                now,
-                now
-        );
-
-        List<ItemEntity> items = List.of(item);
-
-        OrderEntity order = new OrderEntity(
-                orderId,
-                "ORD-001",
-                StatusOrder.PENDING,
-                20.0,
-                customerId,
-                now,
-                now,
-                items
-        );
-
-        OutputStatus outputStatus = new OutputStatus(200, "SUCCESS", "Order created successfully");
-        CreateOrderOutput output = new CreateOrderOutput(order, outputStatus);
+        doThrow(new RuntimeException("Kafka error")).when(kafkaTemplate).send(anyString(), anyString(), anyString());
 
         // Act
-        doNothing().when(orderProducer).send(anyString(), anyString());
-        orderProducer.sendOrder(output);
+        orderProducer.fallbackSendOrder(createOrderOutput, new RuntimeException("Kafka error"));
 
         // Assert
-        verify(orderProducer, times(1)).send(anyString(), anyString());
+        verify(fallbackOrderRepository, times(1)).save(any(FallbackOrderEntity.class));
     }
 
+    @Test
+    void shouldConvertToFallbackCorrectly() {
+        // Arrange
+        OrderEntity orderEntity = createOrderEntity();
+
+        // Act
+        FallbackOrderEntity fallbackOrder = orderProducer.convertToFallback(orderEntity);
+
+        // Assert
+        assertNotNull(fallbackOrder);
+        assertEquals(orderEntity.getUuid(), fallbackOrder.getId());
+        assertEquals(orderEntity.getOrderNumber(), fallbackOrder.getOrderNumber());
+        assertEquals(orderEntity.getStatusOrder(), fallbackOrder.getStatusOrder());
+        assertEquals(orderEntity.getTotalValue(), fallbackOrder.getTotalValue());
+    }
+
+    private OrderEntity createOrderEntity() {
+        OrderEntity order = new OrderEntity();
+        order.setUuid(UUID.randomUUID());
+        order.setOrderNumber("12345");
+        order.setStatusOrder(StatusOrder.valueOf("APPROVED"));
+        order.setTotalValue(150.00);
+        order.setCustomerId(UUID.randomUUID());
+        order.setCreatedAt(LocalDateTime.now());
+        order.setUpdatedAt(LocalDateTime.now());
+        order.setItem(Collections.singletonList(createItemEntity()));
+
+        return order;
+    }
+
+    private ItemEntity createItemEntity() {
+        ItemEntity item = new ItemEntity();
+        item.setUuid(UUID.randomUUID());
+        item.setName("Product Test");
+        item.setValue(50.00);
+        item.setQuantity(2);
+        item.setCreatedAt(LocalDateTime.now());
+        item.setUpdatedAt(LocalDateTime.now());
+
+        return item;
+    }
 }

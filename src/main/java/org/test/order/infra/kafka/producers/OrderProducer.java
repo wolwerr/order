@@ -86,7 +86,7 @@ public class OrderProducer {
         fallbackOrderRepository.save(fallbackOrder);
     }
 
-    private FallbackOrderEntity convertToFallback(OrderEntity order) {
+    FallbackOrderEntity convertToFallback(OrderEntity order) {
         FallbackOrderEntity fallbackOrder = new FallbackOrderEntity();
         fallbackOrder.setId(order.getUuid());
         fallbackOrder.setOrderNumber(order.getOrderNumber());
