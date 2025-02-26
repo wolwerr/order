@@ -16,7 +16,6 @@ public class JwtTokenUtil {
     @Value("${jwt.secret-key}")
     private String secretKey;
 
-    // Injetando o tempo de expiração em minutos
     @Value("${jwt.expiration-time}")
     private long expirationTimeInMinutes;
 
@@ -25,6 +24,9 @@ public class JwtTokenUtil {
     }
 
     public String generateToken() {
+        if (expirationTimeInMinutes <= 0) {
+            throw new IllegalArgumentException("Expiration time must be greater than zero");
+        }
         long expirationTimeInMillis = expirationTimeInMinutes * 1000 * 60;
 
         return Jwts.builder()
