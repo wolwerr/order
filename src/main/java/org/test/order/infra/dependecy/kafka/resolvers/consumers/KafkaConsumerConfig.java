@@ -20,6 +20,9 @@ public class KafkaConsumerConfig {
         properties.put("group.id", "item");
         properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         properties.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        properties.put("auto.offset.reset", "earliest");
+        properties.put("enable.auto.commit", "true");
+        properties.put("max.poll.records", "100");
         return new KafkaConsumer<>(properties);
     }
 }
