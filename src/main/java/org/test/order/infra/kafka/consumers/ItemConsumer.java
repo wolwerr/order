@@ -57,31 +57,34 @@ public class ItemConsumer {
         for (ConsumerRecord<String, String> record : records) {
             logger.info("Message received - Topic: {}, Key: {}, Value: {}", record.topic(), record.key(), record.value());
             try {
-                JsonNode messageJson = objectMapper.readTree(record.value());
-                UUID uuidItem = UUID.fromString(messageJson.get("uuid").asText());
+                if (record.value() != null && record.value().trim().endsWith("}")) {
+                    JsonNode messageJson = objectMapper.readTree(record.value());
+                    UUID uuidItem = UUID.fromString(messageJson.get("uuid").asText());
 
-                if (itemMongoRepository.findByUuid(uuidItem).isPresent()) {
-                    logger.warn("Item with UUID {} already exists. Skipping save.", uuidItem);
-                    continue;
+                    if (itemMongoRepository.findByUuid(uuidItem).isPresent()) {
+                        logger.warn("Item with UUID {} already exists. Skipping save.", uuidItem);
+                        continue;
+                    }
+
+                    String name = messageJson.get("name").asText();
+                    double totalValue = messageJson.get("value").asDouble();
+                    int quantity = messageJson.get("quantity").asInt();
+                    LocalDateTime createdAt = LocalDateTime.parse(messageJson.get("createdAt").asText());
+                    LocalDateTime updatedAt = LocalDateTime.parse(messageJson.get("updatedAt").asText());
+
+                    if (totalValue < 0) {
+                        throw new ItemValueZeroException("The value must be greater than 0");
+                    }
+                    if (quantity < 0) {
+                        throw new ItemEmptyException("The quantity must be greater than 0");
+                    }
+
+                    Item item = new Item(uuidItem, name, totalValue, quantity, createdAt, updatedAt);
+                    itemMongoRepository.save(item);
+                    logger.info("Item with UUID {} saved successfully.", uuidItem);
+                } else {
+                    logger.error("Received incomplete JSON message: {}", record.value());
                 }
-
-                String name = messageJson.get("name").asText();
-                double totalValue = messageJson.get("value").asDouble();
-                int quantity = messageJson.get("quantity").asInt();
-                LocalDateTime createdAt = LocalDateTime.parse(messageJson.get("createdAt").asText());
-                LocalDateTime updatedAt = LocalDateTime.parse(messageJson.get("updatedAt").asText());
-
-                if (totalValue < 0) {
-                    throw new ItemValueZeroException("The value must be greater than 0");
-                }
-                if (quantity < 0) {
-                    throw new ItemEmptyException("The quantity must be greater than 0");
-                }
-
-                Item item = new Item(uuidItem, name, totalValue, quantity, createdAt, updatedAt);
-                itemMongoRepository.save(item);
-                logger.info("Item with UUID {} saved successfully.", uuidItem);
-
             } catch (ItemValueZeroException | ItemEmptyException | JsonProcessingException e) {
                 logger.error("Error processing message: {}", e.getMessage(), e);
             }
